@@ -1,0 +1,47 @@
+{
+  "entities": {
+    "articles": {
+      "title": "Articles",
+      "description": "News articles and posts",
+      "fields": {
+        "title": { "type": "string", "description": "Headline" },
+        "category": { "type": "string", "description": "Category name" },
+        "content": { "type": "string", "description": "Full news text" },
+        "summary": { "type": "string", "description": "Short excerpt" },
+        "image": { "type": "string", "description": "Featured image URL" },
+        "date": { "type": "string", "description": "Publication date" },
+        "isLead": { "type": "boolean", "description": "Is main lead story" },
+        "isTicker": { "type": "boolean", "description": "Show in ticker" },
+        "views": { "type": "number", "description": "View count" },
+        "updatedAt": { "type": "string", "description": "Last updated timestamp" }
+      }
+    },
+    "site_settings": {
+      "title": "Site Settings",
+      "description": "Portal configurations and banner ads",
+      "fields": {
+        "siteName": { "type": "string", "description": "Website title" },
+        "tickerTitle": { "type": "string", "description": "Ticker prefix" },
+        "headerNotice": { "type": "string", "description": "Notice text" },
+        "footerText": { "type": "string", "description": "Footer copyright info" },
+        "editorName": { "type": "string", "description": "Editor name" }
+      }
+    },
+    "photos": {
+      "title": "Photo Gallery",
+      "description": "Photo gallery items",
+      "fields": {
+        "title": { "type": "string", "description": "Photo caption" },
+        "image": { "type": "string", "description": "Photo URL" }
+      }
+    },
+    "videos": {
+      "title": "Video Gallery",
+      "description": "Video gallery items",
+      "fields": {
+        "title": { "type": "string", "description": "Video title" },
+        "youtubeUrl": { "type": "string", "description": "YouTube video link" }
+      }
+    }
+  }
+}

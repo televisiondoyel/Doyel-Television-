@@ -1,0 +1,1157 @@
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Header } from './components/Header';
+import { Navbar } from './components/Navbar';
+import { BreakingTicker } from './components/BreakingTicker';
+import { CategoryHeader } from './components/CategoryHeader';
+import { ImageWithFallback } from './components/ImageWithFallback';
+import { PhotoGallery } from './components/PhotoGallery';
+import { VideoGallery } from './components/VideoGallery';
+import { SidebarWidgets } from './components/SidebarWidgets';
+import { SinglePageArticle } from './components/SinglePageArticle';
+import { CategoryArchivePage } from './components/CategoryArchivePage';
+import { OurFamilyPage } from './components/OurFamilyPage';
+import { Footer } from './components/Footer';
+import { AdminDashboard } from './components/admin/AdminDashboard';
+import {
+  leadStory as defaultLead,
+  sideLeadNews as defaultSideLead,
+  gridSectionTwoCards as defaultGridTwo,
+  nationalNewsMain as defaultNationalMain,
+  nationalNewsList as defaultNationalList,
+  internationalNews as defaultInternational,
+  economyNews as defaultEconomy,
+  lawNews as defaultLaw,
+  entertainmentNews as defaultEntertainment,
+  mediaNewsGrid as defaultMedia,
+  sportsList as defaultSports,
+  techNews as defaultTech,
+  educationNews as defaultEducation,
+  opinionNews as defaultOpinion,
+  findArticle,
+  tickerNews as defaultTicker,
+  photoGalleryData as defaultPhotos,
+  videoGalleryData as defaultVideos,
+  defaultFamilyMembers
+} from './data/newsData';
+import { NewsArticle, CategoryItem, TickerItem, PhotoSlide, VideoSlide, SiteSettings, FamilyMember } from './types';
+import {
+  seedFirestoreIfEmpty,
+  subscribeToArticles,
+  subscribeToSiteSettings,
+  subscribeToCategories,
+  subscribeToTicker,
+  subscribeToPhotos,
+  subscribeToVideos,
+  subscribeToFamilyMembers,
+  defaultSettings,
+  defaultCategories
+} from './lib/firestoreService';
+
+export default function App() {
+  // Navigation & View States
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
+  const [currentFilterCategory, setCurrentFilterCategory] = useState<string>('প্রচ্ছদ');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [dateFilter, setDateFilter] = useState<string>('');
+
+  // Live Firestore State
+  const [articles, setArticles] = useState<NewsArticle[]>([]);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>(defaultSettings);
+  const [categories, setCategories] = useState<CategoryItem[]>(defaultCategories);
+  const [tickerItems, setTickerItems] = useState<TickerItem[]>([]);
+  const [photos, setPhotos] = useState<PhotoSlide[]>([]);
+  const [videos, setVideos] = useState<VideoSlide[]>([]);
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+
+  // ----------------------------------------------------
+  // Dynamic URL Router & Browser History (xyz.com/রাজনীতি etc.)
+  // ----------------------------------------------------
+  const handleOpenArticle = (idOrTitle: string | number, updateUrl = true) => {
+    const stringId = String(idOrTitle);
+    let targetArticle: NewsArticle | null = null;
+
+    const inDb = articles.find((a) => String(a.id) === stringId || a.title === stringId);
+    if (inDb) {
+      targetArticle = inDb;
+    } else {
+      const article = findArticle(stringId);
+      if (article) {
+        targetArticle = article;
+      } else {
+        const fallbackItem = tickerItems.find((t) => String(t.id) === stringId);
+        targetArticle = {
+          id: stringId,
+          title: fallbackItem ? fallbackItem.title : stringId,
+          category: 'জাতীয়',
+          image: 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&auto=format&fit=crop&q=80',
+          excerpt: 'এই সংবাদটি সম্পর্কে বিস্তারিত বিবরণ শীঘ্রই প্রকাশিত হবে।',
+          content: `দেশ ও বিদেশের সর্বশেষ নির্ভরযোগ্য সংবাদ পেতে চোখ রাখুন প্রফেশনাল নিউজ পোর্টালে। সত্য ও বস্তুনিষ্ঠ সাংবাদিকতায় আমরা সদা অঙ্গীকারবদ্ধ।`,
+          date: '২১ অগাস্ট ২০২৬',
+          author: 'অনলাইন ডেস্ক',
+        };
+      }
+    }
+
+    setSelectedArticle(targetArticle);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (updateUrl && targetArticle) {
+      try {
+        window.history.pushState({ type: 'article', id: stringId }, '', `/news/${encodeURIComponent(stringId)}`);
+      } catch {
+        // ignore iframe history restrictions if any
+      }
+    }
+  };
+
+  const handleCategorySelect = (cat: string, updateUrl = true) => {
+    setSelectedArticle(null);
+    setSearchQuery('');
+    setDateFilter('');
+    setCurrentFilterCategory(cat);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (updateUrl) {
+      try {
+        if (cat === 'প্রচ্ছদ') {
+          window.history.pushState({ type: 'category', category: 'প্রচ্ছদ' }, '', '/');
+        } else {
+          window.history.pushState({ type: 'category', category: cat }, '', `/${cat}`);
+        }
+      } catch {
+        // ignore iframe history restrictions if any
+      }
+    }
+  };
+
+  const handleOpenAdmin = (updateUrl = true) => {
+    setIsAdminOpen(true);
+    if (updateUrl) {
+      try {
+        window.history.pushState({ type: 'admin' }, '', '/admin');
+      } catch {
+        // ignore
+      }
+    }
+  };
+
+  const handleExitAdmin = (updateUrl = true) => {
+    setIsAdminOpen(false);
+    if (updateUrl) {
+      try {
+        if (currentFilterCategory && currentFilterCategory !== 'প্রচ্ছদ') {
+          window.history.pushState({ type: 'category', category: currentFilterCategory }, '', `/${currentFilterCategory}`);
+        } else {
+          window.history.pushState({ type: 'category', category: 'প্রচ্ছদ' }, '', '/');
+        }
+      } catch {
+        // ignore
+      }
+    }
+  };
+
+  // Sync state on Initial Load and Browser Back/Forward navigation
+  const syncRouteFromPath = useCallback(() => {
+    try {
+      const rawPath = window.location.pathname;
+      const decodedPath = decodeURIComponent(rawPath).trim();
+
+      if (decodedPath === '/admin' || decodedPath === '/wp-admin') {
+        setIsAdminOpen(true);
+        setSelectedArticle(null);
+        return;
+      }
+
+      if (decodedPath.startsWith('/news/')) {
+        const articleId = decodedPath.replace('/news/', '').trim();
+        if (articleId) {
+          setIsAdminOpen(false);
+          handleOpenArticle(articleId, false);
+          return;
+        }
+      }
+
+      const catSlug = decodedPath.replace(/^\/+/, '').trim();
+      if (catSlug && catSlug !== 'index.html' && catSlug !== 'home') {
+        setIsAdminOpen(false);
+        setSelectedArticle(null);
+        if (catSlug === 'আমাদের পরিবার' || catSlug === 'আমাদের-পরিবার') {
+          setCurrentFilterCategory('আমাদের পরিবার');
+        } else {
+          setCurrentFilterCategory(catSlug);
+        }
+      } else {
+        setIsAdminOpen(false);
+        setSelectedArticle(null);
+        setCurrentFilterCategory('প্রচ্ছদ');
+      }
+    } catch (e) {
+      console.error('Route parsing error:', e);
+    }
+  }, [articles]);
+
+  useEffect(() => {
+    syncRouteFromPath();
+    window.addEventListener('popstate', syncRouteFromPath);
+    return () => window.removeEventListener('popstate', syncRouteFromPath);
+  }, [syncRouteFromPath]);
+
+  // Seed and Subscribe to Real-time Database on Mount
+  useEffect(() => {
+    // 1. Seed if empty
+    seedFirestoreIfEmpty().then(() => {
+      console.log('Database check complete.');
+    });
+
+    // 2. Real-time Subscriptions with complete state synchronization (including deletion to empty)
+    const unsubArticles = subscribeToArticles((data) => {
+      setArticles(data || []);
+    });
+
+    const unsubSettings = subscribeToSiteSettings((data) => {
+      if (data) setSiteSettings(data);
+    });
+
+    const unsubCategories = subscribeToCategories((data) => {
+      setCategories(data || []);
+    });
+
+    const unsubTicker = subscribeToTicker((data) => {
+      setTickerItems(data || []);
+    });
+
+    const unsubPhotos = subscribeToPhotos((data) => {
+      setPhotos(data || []);
+    });
+
+    const unsubVideos = subscribeToVideos((data) => {
+      setVideos(data || []);
+    });
+
+    const unsubFamily = subscribeToFamilyMembers((data) => {
+      setFamilyMembers(data || []);
+    });
+
+    return () => {
+      unsubArticles();
+      unsubSettings();
+      unsubCategories();
+      unsubTicker();
+      unsubPhotos();
+      unsubVideos();
+      unsubFamily();
+    };
+  }, []);
+
+  // Compute all articles (combining dynamic firestore articles or fallback defaults)
+  const allArticles = useMemo(() => {
+    if (articles.length > 0) {
+      return articles;
+    }
+    return [
+      defaultLead,
+      ...defaultSideLead,
+      ...defaultGridTwo,
+      defaultNationalMain,
+      ...defaultNationalList,
+      ...defaultInternational,
+      defaultEconomy.featured,
+      defaultLaw.featured,
+      defaultEntertainment.featured,
+      ...defaultMedia,
+      ...defaultSports,
+      defaultTech.featured,
+      defaultEducation.featured,
+      defaultOpinion.featured,
+    ];
+  }, [articles]);
+
+  // Lead Story Dynamic Computation
+  const leadStoryItem = useMemo(() => {
+    const customLead = articles.find((a) => a.lead);
+    if (customLead) return customLead;
+    return defaultLead;
+  }, [articles]);
+
+  // Side Leads
+  const sideLeadNewsItems = useMemo(() => {
+    const items = articles.filter((a) => a.id !== leadStoryItem.id && a.category === 'জাতীয়');
+    if (items.length >= 4) return items.slice(0, 4);
+    return defaultSideLead;
+  }, [articles, leadStoryItem]);
+
+  // Grid Section Two
+  const gridSectionTwoItems = useMemo(() => {
+    const items = articles.filter((a) => a.id !== leadStoryItem.id);
+    if (items.length >= 6) return items.slice(2, 4);
+    return defaultGridTwo;
+  }, [articles, leadStoryItem]);
+
+  // Category specific slices
+  const getCategoryArticles = (catName: string, count: number = 6) => {
+    const filtered = articles.filter((a) => a.category === catName || a.subcategory === catName);
+    return filtered.slice(0, count);
+  };
+
+  const nationalItems = getCategoryArticles('জাতীয়', 5);
+  const nationalMain = nationalItems[0] || defaultNationalMain;
+  const nationalList = nationalItems.length > 1 ? nationalItems.slice(1) : defaultNationalList;
+
+  const internationalItems = getCategoryArticles('আন্তর্জাতিক', 6);
+  const internationalList = internationalItems.length > 0 ? internationalItems : defaultInternational;
+
+  const economyItems = getCategoryArticles('অর্থনীতি', 5);
+  const economyFeatured = economyItems[0] || defaultEconomy.featured;
+  const economyList = economyItems.length > 1 ? economyItems.slice(1) : defaultEconomy.list;
+
+  const lawItems = getCategoryArticles('আইন-আদালত', 5);
+  const lawFeatured = lawItems[0] || defaultLaw.featured;
+  const lawList = lawItems.length > 1 ? lawItems.slice(1) : defaultLaw.list;
+
+  const entertainmentItems = getCategoryArticles('বিনোদন', 5);
+  const entertainmentFeatured = entertainmentItems[0] || defaultEntertainment.featured;
+  const entertainmentList = entertainmentItems.length > 1 ? entertainmentItems.slice(1) : defaultEntertainment.list;
+
+  const mediaItems = getCategoryArticles('গণমাধ্যম', 6);
+  const mediaList = mediaItems.length > 0 ? mediaItems : defaultMedia;
+
+  const sportsItems = getCategoryArticles('খেলাধুলা', 5);
+  const sportsList = sportsItems.length > 0 ? sportsItems : defaultSports;
+
+  const techItems = getCategoryArticles('তথ্যপ্রযুক্তি', 5);
+  const techFeatured = techItems[0] || defaultTech.featured;
+  const techList = techItems.length > 1 ? techItems.slice(1) : defaultTech.list;
+
+  const educationItems = getCategoryArticles('শিক্ষা', 5);
+  const educationFeatured = educationItems[0] || defaultEducation.featured;
+  const educationList = educationItems.length > 1 ? educationItems.slice(1) : defaultEducation.list;
+
+  const opinionItems = getCategoryArticles('মতামত', 5);
+  const opinionFeatured = opinionItems[0] || defaultOpinion.featured;
+  const opinionList = opinionItems.length > 1 ? opinionItems.slice(1) : defaultOpinion.list;
+
+  // Filtered articles when search or category is active (if not 'প্রচ্ছদ')
+  const filteredArticles = useMemo(() => {
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      return allArticles.filter(
+        (a) =>
+          a.title.toLowerCase().includes(q) ||
+          a.excerpt?.toLowerCase().includes(q) ||
+          a.category?.toLowerCase().includes(q)
+      );
+    }
+
+    if (currentFilterCategory && currentFilterCategory !== 'প্রচ্ছদ' && currentFilterCategory !== 'আমাদের পরিবার') {
+      return allArticles.filter(
+        (a) =>
+          a.category === currentFilterCategory ||
+          a.subcategory === currentFilterCategory ||
+          (currentFilterCategory.includes('বিভাগ') && a.category === 'জাতীয়')
+      );
+    }
+
+    return null;
+  }, [allArticles, searchQuery, currentFilterCategory]);
+
+  const handleSearch = (q: string) => {
+    setSelectedArticle(null);
+    setSearchQuery(q);
+    setCurrentFilterCategory('অনুসন্ধান');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDateFilter = (dateStr: string) => {
+    setSelectedArticle(null);
+    setDateFilter(dateStr);
+    setCurrentFilterCategory(`আর্কাইভ: ${dateStr}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Reusable Ad Banner Row
+  const renderAdBannerRow = (key: string) => (
+    <div key={key} className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+      <a
+        href="https://themesbazar.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block bg-gradient-to-r from-[#004F8A] to-[#1F4565] text-white rounded p-4 text-center shadow-xs hover:opacity-95 transition-opacity"
+      >
+        <div className="flex items-center justify-between">
+          <div className="text-left">
+            <span className="text-[10px] uppercase tracking-wider bg-red-600 px-1.5 py-0.5 rounded font-bold">
+              বিজ্ঞাপন
+            </span>
+            <p className="font-bold text-base mt-1">ThemesBazar.Com</p>
+            <p className="text-xs text-blue-100">রেস্পন্সিভ নিউজ পোর্টাল থিম ডাউনলোড করুন</p>
+          </div>
+          <div className="bg-white text-[#004F8A] font-bold text-xs px-3 py-1.5 rounded shadow-xs">
+            ক্লিক করুন
+          </div>
+        </div>
+      </a>
+
+      <a
+        href="https://themesbazar.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block bg-gradient-to-r from-[#9A1515] to-[#7D0101] text-white rounded p-4 text-center shadow-xs hover:opacity-95 transition-opacity"
+      >
+        <div className="flex items-center justify-between">
+          <div className="text-left">
+            <span className="text-[10px] uppercase tracking-wider bg-yellow-400 text-black px-1.5 py-0.5 rounded font-bold">
+              স্পেশাল অফার
+            </span>
+            <p className="font-bold text-base mt-1">প্রফেশনাল ওয়েবসাইট ডেভেলপমেন্ট</p>
+            <p className="text-xs text-red-100">আপনার নিজস্ব অনলাইন পত্রিকার জন্য যোগাযোগ করুন</p>
+          </div>
+          <div className="bg-white text-[#9A1515] font-bold text-xs px-3 py-1.5 rounded shadow-xs">
+            অর্ডার করুন
+          </div>
+        </div>
+      </a>
+    </div>
+  );
+
+  // ----------------------------------------------------
+  // FULL PAGE ADMIN DASHBOARD VIEW
+  // ----------------------------------------------------
+  if (isAdminOpen) {
+    return (
+      <AdminDashboard
+        articles={allArticles}
+        categories={categories}
+        tickerItems={tickerItems.length > 0 ? tickerItems : defaultTicker}
+        photos={photos.length > 0 ? photos : defaultPhotos}
+        videos={videos.length > 0 ? videos : defaultVideos}
+        siteSettings={siteSettings}
+        familyMembers={familyMembers.length > 0 ? familyMembers : defaultFamilyMembers}
+        onExitAdmin={() => handleExitAdmin(true)}
+      />
+    );
+  }
+
+  // ----------------------------------------------------
+  // PUBLIC NEWS PORTAL FRONTEND VIEW
+  // ----------------------------------------------------
+  return (
+    <div className="min-h-screen bg-[#F2F2F2]">
+      <div className="container mx-auto max-w-7xl px-2 sm:px-4">
+        <div className="main_wbsite bg-white p-3 sm:p-5 rounded shadow-sm">
+          {/* Top Header with Site Settings & Admin Shortcut */}
+          <Header
+            onSearch={handleSearch}
+            siteSettings={siteSettings}
+            onOpenAdmin={() => handleOpenAdmin(true)}
+          />
+
+          {/* Main Navigation Bar */}
+          <Navbar
+            activeCategory={currentFilterCategory}
+            onSelectCategory={handleCategorySelect}
+          />
+
+          {/* Breaking News Marquee */}
+          <BreakingTicker
+            onSelectArticle={handleOpenArticle}
+            tickerItems={tickerItems}
+            tickerTitle={siteSettings.tickerTitle}
+          />
+
+          {/* Single Article Page View or Category Archive Page or Normal Homepage */}
+          {selectedArticle !== null ? (
+            <SinglePageArticle
+              article={selectedArticle}
+              onClose={() => setSelectedArticle(null)}
+              onSelectArticle={handleOpenArticle}
+            />
+          ) : filteredArticles !== null ? (
+            <CategoryArchivePage
+              category={currentFilterCategory}
+              articles={filteredArticles}
+              onSelectArticle={handleOpenArticle}
+              onClose={() => handleCategorySelect('প্রচ্ছদ')}
+            />
+          ) : currentFilterCategory === 'আমাদের পরিবার' ? (
+            /* Our Family / Editorial Board View */
+            <OurFamilyPage
+              members={familyMembers.length > 0 ? familyMembers : defaultFamilyMembers}
+              onHome={() => handleCategorySelect('প্রচ্ছদ')}
+            />
+          ) : (
+            /* Complete Multi-Section Homepage */
+            <>
+              {/* ====================================================
+                  SECTION ONE: Lead Story, Side Leads, Exclusive 2x3, National, Sidebar
+                  ==================================================== */}
+              <div className="section_one my-3">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                  {/* Left Column (9 Cols) */}
+                  <div className="lg:col-span-9 space-y-6">
+                    {/* 1. Category One: Main Lead & Side Leads */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                      {/* Big Lead News (7 Cols) */}
+                      <div className="md:col-span-7">
+                        <div
+                          onClick={() => handleOpenArticle(leadStoryItem.id)}
+                          className="bg-white border border-gray-200 rounded p-3 shadow-xs hover:shadow-md transition-shadow cursor-pointer group"
+                        >
+                          <div className="aspect-video w-full rounded overflow-hidden bg-gray-100 mb-3">
+                            <ImageWithFallback
+                              src={leadStoryItem.image}
+                              fallbackSrc={leadStoryItem.fallbackImage}
+                              alt={leadStoryItem.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                          </div>
+                          <h2 className="hadding_01 text-xl sm:text-2xl font-bold group-hover:text-[#9A1515] transition-colors leading-tight">
+                            {leadStoryItem.title}
+                          </h2>
+                          <p className="content-dtls text-gray-600 text-sm mt-2 leading-relaxed">
+                            {leadStoryItem.excerpt}
+                            <span className="text-[#004F8A] font-semibold ml-1.5 hover:underline">
+                              বিস্তারিত...
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* 4 Small Side Leads (5 Cols) */}
+                      <div className="md:col-span-5">
+                        <div className="bg-white border border-gray-200 rounded p-3 shadow-xs space-y-2.5">
+                          {sideLeadNewsItems.map((item) => (
+                            <div
+                              key={item.id}
+                              onClick={() => handleOpenArticle(item.id)}
+                              className="tab-border flex items-start gap-2.5 cursor-pointer group py-1"
+                            >
+                              <div className="w-20 h-14 shrink-0 rounded overflow-hidden bg-gray-100">
+                                <ImageWithFallback
+                                  src={item.image}
+                                  fallbackSrc={item.fallbackImage}
+                                  alt={item.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                />
+                              </div>
+                              <h4 className="hadding_02 text-sm font-semibold text-gray-800 group-hover:text-[#9A1515] leading-snug line-clamp-2 transition-colors">
+                                {item.title}
+                              </h4>
+                            </div>
+                          ))}
+
+                          {/* More News Button */}
+                          <div className="pt-2 text-right">
+                            <button
+                              onClick={() => handleCategorySelect('লিড নিউজ')}
+                              className="more_news"
+                            >
+                              <span>আরো খবর..</span>
+                              <i className="fa fa-angle-double-right text-xs"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 2. Category Two: 2x3 Grid Exclusive News */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {gridSectionTwoItems.map((item) => (
+                        <div
+                          key={item.id}
+                          onClick={() => handleOpenArticle(item.id)}
+                          className="bg-white border border-gray-200 rounded p-3 shadow-xs hover:shadow-md transition-shadow cursor-pointer group"
+                        >
+                          <div className="aspect-video w-full rounded overflow-hidden bg-gray-100 mb-2">
+                            <ImageWithFallback
+                              src={item.image}
+                              fallbackSrc={item.fallbackImage}
+                              alt={item.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                          </div>
+                          <h4 className="hadding_02 text-base font-bold text-gray-900 group-hover:text-[#9A1515] transition-colors leading-snug">
+                            {item.title}
+                          </h4>
+                          <p className="content-dtls text-xs sm:text-sm text-gray-600 mt-1.5 line-clamp-2">
+                            {item.excerpt}
+                            <span className="text-[#004F8A] font-semibold ml-1 hover:underline">
+                              বিস্তারিত...
+                            </span>
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* 3. Category Three: জাতীয় (National) News */}
+                    <div className="bg-white p-3 border border-gray-200 rounded shadow-xs">
+                      <CategoryHeader
+                        title="জাতীয়"
+                        icon="fa-newspaper-o"
+                        onCategoryClick={() => handleCategorySelect('জাতীয়')}
+                      />
+
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mt-2">
+                        {/* National Left Highlight (5 cols) */}
+                        <div className="md:col-span-5">
+                          <div
+                            onClick={() => handleOpenArticle(nationalMain.id)}
+                            className="cursor-pointer group"
+                          >
+                            <div className="aspect-video w-full rounded overflow-hidden bg-gray-100 mb-2">
+                              <ImageWithFallback
+                                src={nationalMain.image}
+                                fallbackSrc={nationalMain.fallbackImage}
+                                alt={nationalMain.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              />
+                            </div>
+                            <h4 className="hadding_02 text-base font-bold text-gray-900 group-hover:text-[#9A1515] transition-colors leading-snug">
+                              {nationalMain.title}
+                            </h4>
+                            <p className="content-dtls text-xs sm:text-sm text-gray-600 mt-1.5 line-clamp-2">
+                              {nationalMain.excerpt}
+                              <span className="text-[#004F8A] font-semibold ml-1 hover:underline">
+                                বিস্তারিত...
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* National Right 2x2 Grid (7 cols) */}
+                        <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {nationalList.map((item) => (
+                            <div
+                              key={item.id}
+                              onClick={() => handleOpenArticle(item.id)}
+                              className="cursor-pointer group bg-gray-50/70 p-2 rounded border border-gray-200/70 hover:border-gray-300"
+                            >
+                              <div className="aspect-video w-full rounded overflow-hidden bg-gray-100 mb-1.5">
+                                <ImageWithFallback
+                                  src={item.image}
+                                  fallbackSrc={item.fallbackImage}
+                                  alt={item.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                />
+                              </div>
+                              <h5 className="hadding_03 text-[13.5px] font-semibold text-gray-800 group-hover:text-[#9A1515] leading-snug line-clamp-2 transition-colors">
+                                {item.title}
+                              </h5>
+                              <p className="content-dtls text-[11.5px] text-gray-500 line-clamp-1 mt-0.5">
+                                {item.excerpt}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Sidebar Column (3 Cols) */}
+                  <div className="lg:col-span-3">
+                    <SidebarWidgets
+                      onSelectArticle={handleOpenArticle}
+                      onSelectCategory={handleCategorySelect}
+                      onFilterByDate={handleDateFilter}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Advertisement Row 1 */}
+              {renderAdBannerRow('ad-row-1')}
+
+              {/* ====================================================
+                  SECTION TWO: আন্তর্জাতিক (International) 3x3 Grid
+                  ==================================================== */}
+              <div className="section_two my-6 bg-white p-3 border border-gray-200 rounded shadow-xs">
+                <CategoryHeader
+                  title="আন্তর্জাতিক"
+                  icon="fa-globe"
+                  onCategoryClick={() => handleCategorySelect('আন্তর্জাতিক')}
+                />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-2">
+                  {internationalList.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleOpenArticle(item.id)}
+                      className="cursor-pointer group p-2 rounded bg-gray-50/70 border border-gray-200/80 hover:shadow-xs transition-all"
+                    >
+                      <div className="aspect-video w-full rounded overflow-hidden bg-gray-100 mb-2">
+                        <ImageWithFallback
+                          src={item.image}
+                          fallbackSrc={item.fallbackImage}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      </div>
+                      <h4 className="hadding_02 text-[14.5px] font-bold text-gray-900 group-hover:text-[#9A1515] transition-colors leading-snug line-clamp-2">
+                        {item.title}
+                      </h4>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Advertisement Row 2 */}
+              {renderAdBannerRow('ad-row-2')}
+
+              {/* ====================================================
+                  SECTION THREE: অর্থনীতি, আইন-আদালত, বিনোদন (3 Columns)
+                  ==================================================== */}
+              <div className="section_three my-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Column 1: অর্থনীতি (Economy) */}
+                <div className="bg-white p-3 border border-gray-200 rounded shadow-xs flex flex-col justify-between">
+                  <div>
+                    <CategoryHeader
+                      title="অর্থনীতি"
+                      icon="fa-line-chart"
+                      onCategoryClick={() => handleCategorySelect('অর্থনীতি')}
+                    />
+
+                    {/* Featured Item */}
+                    <div
+                      onClick={() => handleOpenArticle(economyFeatured.id)}
+                      className="cursor-pointer group mb-3"
+                    >
+                      <div className="aspect-video w-full rounded overflow-hidden bg-gray-100 mb-2">
+                        <ImageWithFallback
+                          src={economyFeatured.image}
+                          fallbackSrc={economyFeatured.fallbackImage}
+                          alt={economyFeatured.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      </div>
+                      <h4 className="hadding_01 text-base font-bold text-gray-900 group-hover:text-[#9A1515] transition-colors leading-snug">
+                        {economyFeatured.title}
+                      </h4>
+                    </div>
+
+                    {/* Arrow Bullet List */}
+                    <ul className="divide-y divide-gray-100">
+                      {economyList.map((item) => (
+                        <li
+                          key={item.id}
+                          onClick={() => handleOpenArticle(item.id)}
+                          className="py-1.5 flex items-start gap-2 cursor-pointer group text-xs sm:text-sm font-medium text-gray-800 hover:text-[#9A1515] transition-colors"
+                        >
+                          <i className="fa fa-arrow-circle-right text-red-600 mt-1 shrink-0 text-xs"></i>
+                          <span className="line-clamp-1">{item.title}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="mt-3 pt-2 border-t border-gray-100 text-right">
+                    <button
+                      onClick={() => handleCategorySelect('অর্থনীতি')}
+                      className="more_news"
+                    >
+                      <span>আরো খবর..</span>
+                      <i className="fa fa-angle-double-right text-xs"></i>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Column 2: আইন-আদালত (Law & Court) */}
+                <div className="bg-white p-3 border border-gray-200 rounded shadow-xs flex flex-col justify-between">
+                  <div>
+                    <CategoryHeader
+                      title="আইন-আদালত"
+                      icon="fa-gavel"
+                      onCategoryClick={() => handleCategorySelect('আইন-আদালত')}
+                    />
+
+                    {/* Featured Item */}
+                    <div
+                      onClick={() => handleOpenArticle(lawFeatured.id)}
+                      className="cursor-pointer group mb-3"
+                    >
+                      <div className="aspect-video w-full rounded overflow-hidden bg-gray-100 mb-2">
+                        <ImageWithFallback
+                          src={lawFeatured.image}
+                          fallbackSrc={lawFeatured.fallbackImage}
+                          alt={lawFeatured.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      </div>
+                      <h4 className="hadding_01 text-base font-bold text-gray-900 group-hover:text-[#9A1515] transition-colors leading-snug">
+                        {lawFeatured.title}
+                      </h4>
+                    </div>
+
+                    {/* Arrow Bullet List */}
+                    <ul className="divide-y divide-gray-100">
+                      {lawList.map((item) => (
+                        <li
+                          key={item.id}
+                          onClick={() => handleOpenArticle(item.id)}
+                          className="py-1.5 flex items-start gap-2 cursor-pointer group text-xs sm:text-sm font-medium text-gray-800 hover:text-[#9A1515] transition-colors"
+                        >
+                          <i className="fa fa-arrow-circle-right text-red-600 mt-1 shrink-0 text-xs"></i>
+                          <span className="line-clamp-1">{item.title}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="mt-3 pt-2 border-t border-gray-100 text-right">
+                    <button
+                      onClick={() => handleCategorySelect('আইন-আদালত')}
+                      className="more_news"
+                    >
+                      <span>আরো খবর..</span>
+                      <i className="fa fa-angle-double-right text-xs"></i>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Column 3: বিনোদন (Entertainment) */}
+                <div className="bg-white p-3 border border-gray-200 rounded shadow-xs flex flex-col justify-between">
+                  <div>
+                    <CategoryHeader
+                      title="বিনোদন"
+                      icon="fa-film"
+                      onCategoryClick={() => handleCategorySelect('বিনোদন')}
+                    />
+
+                    {/* Featured Item */}
+                    <div
+                      onClick={() => handleOpenArticle(entertainmentFeatured.id)}
+                      className="cursor-pointer group mb-3"
+                    >
+                      <div className="aspect-video w-full rounded overflow-hidden bg-gray-100 mb-2">
+                        <ImageWithFallback
+                          src={entertainmentFeatured.image}
+                          fallbackSrc={entertainmentFeatured.fallbackImage}
+                          alt={entertainmentFeatured.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      </div>
+                      <h4 className="hadding_01 text-base font-bold text-gray-900 group-hover:text-[#9A1515] transition-colors leading-snug">
+                        {entertainmentFeatured.title}
+                      </h4>
+                    </div>
+
+                    {/* Arrow Bullet List */}
+                    <ul className="divide-y divide-gray-100">
+                      {entertainmentList.map((item) => (
+                        <li
+                          key={item.id}
+                          onClick={() => handleOpenArticle(item.id)}
+                          className="py-1.5 flex items-start gap-2 cursor-pointer group text-xs sm:text-sm font-medium text-gray-800 hover:text-[#9A1515] transition-colors"
+                        >
+                          <i className="fa fa-arrow-circle-right text-red-600 mt-1 shrink-0 text-xs"></i>
+                          <span className="line-clamp-1">{item.title}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="mt-3 pt-2 border-t border-gray-100 text-right">
+                    <button
+                      onClick={() => handleCategorySelect('বিনোদন')}
+                      className="more_news"
+                    >
+                      <span>আরো খবর..</span>
+                      <i className="fa fa-angle-double-right text-xs"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Advertisement Row 3 */}
+              {renderAdBannerRow('ad-row-3')}
+
+              {/* ====================================================
+                  SECTION FOUR: গণমাধ্যম (8 Cols) & খেলাধুলা (4 Cols)
+                  ==================================================== */}
+              <div className="section_four my-6 grid grid-cols-1 lg:grid-cols-12 gap-5">
+                {/* গণমাধ্যম (Media - 8 Cols) */}
+                <div className="lg:col-span-8 bg-white p-3 border border-gray-200 rounded shadow-xs">
+                  <CategoryHeader
+                    title="গণমাধ্যম"
+                    icon="fa-television"
+                    onCategoryClick={() => handleCategorySelect('গণমাধ্যম')}
+                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 mt-2">
+                    {mediaList.map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => handleOpenArticle(item.id)}
+                        className="cursor-pointer group p-2 rounded bg-gray-50/70 border border-gray-200/80 hover:shadow-xs transition-all flex flex-col justify-between"
+                      >
+                        <div>
+                          <div className="aspect-video w-full rounded overflow-hidden bg-gray-100 mb-2">
+                            <ImageWithFallback
+                              src={item.image}
+                              fallbackSrc={item.fallbackImage}
+                              alt={item.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                          </div>
+                          <h4 className="hadding_02 text-[13.5px] font-bold text-gray-900 group-hover:text-[#9A1515] leading-snug line-clamp-2 transition-colors">
+                            {item.title}
+                          </h4>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* খেলাধুলা (Sports - 4 Cols) */}
+                <div className="lg:col-span-4 bg-white p-3 border border-gray-200 rounded shadow-xs flex flex-col justify-between">
+                  <div>
+                    <CategoryHeader
+                      title="খেলাধুলা"
+                      icon="fa-futbol-o"
+                      onCategoryClick={() => handleCategorySelect('খেলাধুলা')}
+                    />
+
+                    <div className="divide-y divide-gray-100 mt-2">
+                      {sportsList.map((item) => (
+                        <div
+                          key={item.id}
+                          onClick={() => handleOpenArticle(item.id)}
+                          className="py-2.5 flex items-start gap-2.5 cursor-pointer group"
+                        >
+                          <div className="w-20 h-14 shrink-0 rounded overflow-hidden bg-gray-100">
+                            <ImageWithFallback
+                              src={item.image}
+                              fallbackSrc={item.fallbackImage}
+                              alt={item.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                          </div>
+                          <h4 className="hadding_02 text-[13.5px] font-semibold text-gray-800 group-hover:text-[#9A1515] leading-snug line-clamp-2 transition-colors">
+                            {item.title}
+                          </h4>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-2 border-t border-gray-100 text-right">
+                    <button
+                      onClick={() => handleCategorySelect('খেলাধুলা')}
+                      className="more_news"
+                    >
+                      <span>আরো খবর..</span>
+                      <i className="fa fa-angle-double-right text-xs"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Advertisement Row 4 */}
+              {renderAdBannerRow('ad-row-4')}
+
+              {/* ====================================================
+                  SECTION FIVE: তথ্যপ্রযুক্তি, শিক্ষা, মতামত (3 Columns)
+                  ==================================================== */}
+              <div className="section_five my-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Column 1: তথ্যপ্রযুক্তি (Tech) */}
+                <div className="bg-white p-3 border border-gray-200 rounded shadow-xs flex flex-col justify-between">
+                  <div>
+                    <CategoryHeader
+                      title="তথ্যপ্রযুক্তি"
+                      icon="fa-laptop"
+                      onCategoryClick={() => handleCategorySelect('তথ্যপ্রযুক্তি')}
+                    />
+
+                    {/* Featured Item */}
+                    <div
+                      onClick={() => handleOpenArticle(techFeatured.id)}
+                      className="cursor-pointer group mb-3"
+                    >
+                      <div className="aspect-video w-full rounded overflow-hidden bg-gray-100 mb-2">
+                        <ImageWithFallback
+                          src={techFeatured.image}
+                          fallbackSrc={techFeatured.fallbackImage}
+                          alt={techFeatured.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      </div>
+                      <h4 className="hadding_01 text-base font-bold text-gray-900 group-hover:text-[#9A1515] transition-colors leading-snug">
+                        {techFeatured.title}
+                      </h4>
+                    </div>
+
+                    {/* Arrow Bullet List */}
+                    <ul className="divide-y divide-gray-100">
+                      {techList.map((item) => (
+                        <li
+                          key={item.id}
+                          onClick={() => handleOpenArticle(item.id)}
+                          className="py-1.5 flex items-start gap-2 cursor-pointer group text-xs sm:text-sm font-medium text-gray-800 hover:text-[#9A1515] transition-colors"
+                        >
+                          <i className="fa fa-arrow-circle-right text-red-600 mt-1 shrink-0 text-xs"></i>
+                          <span className="line-clamp-1">{item.title}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="mt-3 pt-2 border-t border-gray-100 text-right">
+                    <button
+                      onClick={() => handleCategorySelect('তথ্যপ্রযুক্তি')}
+                      className="more_news"
+                    >
+                      <span>আরো খবর..</span>
+                      <i className="fa fa-angle-double-right text-xs"></i>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Column 2: শিক্ষা (Education) */}
+                <div className="bg-white p-3 border border-gray-200 rounded shadow-xs flex flex-col justify-between">
+                  <div>
+                    <CategoryHeader
+                      title="শিক্ষা"
+                      icon="fa-graduation-cap"
+                      onCategoryClick={() => handleCategorySelect('শিক্ষা')}
+                    />
+
+                    {/* Featured Item */}
+                    <div
+                      onClick={() => handleOpenArticle(educationFeatured.id)}
+                      className="cursor-pointer group mb-3"
+                    >
+                      <div className="aspect-video w-full rounded overflow-hidden bg-gray-100 mb-2">
+                        <ImageWithFallback
+                          src={educationFeatured.image}
+                          fallbackSrc={educationFeatured.fallbackImage}
+                          alt={educationFeatured.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      </div>
+                      <h4 className="hadding_01 text-base font-bold text-gray-900 group-hover:text-[#9A1515] transition-colors leading-snug">
+                        {educationFeatured.title}
+                      </h4>
+                    </div>
+
+                    {/* Arrow Bullet List */}
+                    <ul className="divide-y divide-gray-100">
+                      {educationList.map((item) => (
+                        <li
+                          key={item.id}
+                          onClick={() => handleOpenArticle(item.id)}
+                          className="py-1.5 flex items-start gap-2 cursor-pointer group text-xs sm:text-sm font-medium text-gray-800 hover:text-[#9A1515] transition-colors"
+                        >
+                          <i className="fa fa-arrow-circle-right text-red-600 mt-1 shrink-0 text-xs"></i>
+                          <span className="line-clamp-1">{item.title}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="mt-3 pt-2 border-t border-gray-100 text-right">
+                    <button
+                      onClick={() => handleCategorySelect('শিক্ষা')}
+                      className="more_news"
+                    >
+                      <span>আরো খবর..</span>
+                      <i className="fa fa-angle-double-right text-xs"></i>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Column 3: মতামত (Opinion) */}
+                <div className="bg-white p-3 border border-gray-200 rounded shadow-xs flex flex-col justify-between">
+                  <div>
+                    <CategoryHeader
+                      title="মতামত"
+                      icon="fa-commenting-o"
+                      onCategoryClick={() => handleCategorySelect('মতামত')}
+                    />
+
+                    {/* Featured Item */}
+                    <div
+                      onClick={() => handleOpenArticle(opinionFeatured.id)}
+                      className="cursor-pointer group mb-3"
+                    >
+                      <div className="aspect-video w-full rounded overflow-hidden bg-gray-100 mb-2">
+                        <ImageWithFallback
+                          src={opinionFeatured.image}
+                          fallbackSrc={opinionFeatured.fallbackImage}
+                          alt={opinionFeatured.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      </div>
+                      <h4 className="hadding_01 text-base font-bold text-gray-900 group-hover:text-[#9A1515] transition-colors leading-snug">
+                        {opinionFeatured.title}
+                      </h4>
+                    </div>
+
+                    {/* Arrow Bullet List */}
+                    <ul className="divide-y divide-gray-100">
+                      {opinionList.map((item) => (
+                        <li
+                          key={item.id}
+                          onClick={() => handleOpenArticle(item.id)}
+                          className="py-1.5 flex items-start gap-2 cursor-pointer group text-xs sm:text-sm font-medium text-gray-800 hover:text-[#9A1515] transition-colors"
+                        >
+                          <i className="fa fa-arrow-circle-right text-red-600 mt-1 shrink-0 text-xs"></i>
+                          <span className="line-clamp-1">{item.title}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="mt-3 pt-2 border-t border-gray-100 text-right">
+                    <button
+                      onClick={() => handleCategorySelect('মতামত')}
+                      className="more_news"
+                    >
+                      <span>আরো খবর..</span>
+                      <i className="fa fa-angle-double-right text-xs"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Advertisement Row 5 */}
+              {renderAdBannerRow('ad-row-5')}
+
+              {/* ====================================================
+                  GALLERY SECTION: ফটো গ্যালারী & ভিডিও গ্যালারী
+                  ==================================================== */}
+              <div className="gallery_section my-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* Photo Gallery Carousel */}
+                <PhotoGallery
+                  photos={photos}
+                  onSelectPhoto={(caption) => {
+                    setSelectedArticle({
+                      id: 'photo-gallery',
+                      title: caption,
+                      category: 'ফটো গ্যালারী',
+                      image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80',
+                      excerpt: caption,
+                      content: `ফটো ফিচার ও বিশেষ চিত্র প্রতিবেদন: ${caption}`,
+                      date: '২১ অগাস্ট ২০২৬',
+                      author: 'আলোকচিত্র সাংবাদিক',
+                    });
+                  }}
+                />
+
+                {/* Video Gallery Carousel */}
+                <VideoGallery videos={videos} />
+              </div>
+
+              {/* Advertisement Row 6 */}
+              {renderAdBannerRow('ad-row-6')}
+            </>
+          )}
+
+          {/* Bottom Footer */}
+          <Footer
+            settings={siteSettings}
+            onOpenAdmin={() => setIsAdminOpen(true)}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
