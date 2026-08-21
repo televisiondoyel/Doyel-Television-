@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FamilyMember } from '../../types';
+import { compressImage } from '../../lib/imageCompressor';
 
 interface FamilyManagerProps {
   members: FamilyMember[];
@@ -151,15 +152,37 @@ export const FamilyManager: React.FC<FamilyManagerProps> = ({
 
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">
-                ছবির URL (বা ডিফল্ট ব্লাংক ছবি)
+                ছবির URL অথবা আপলোড (বা ডিফল্ট ব্লাংক ছবি)
               </label>
-              <input
-                type="url"
-                value={image}
-                onChange={(e) => setImage(e.target.value)}
-                placeholder="https://... (খালি রাখলে ডিফল্ট ছবি বসবে)"
-                className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:ring-1 focus:ring-[#2271b1] focus:border-[#2271b1] outline-none"
-              />
+              <div className="space-y-1.5">
+                <input
+                  type="url"
+                  value={image}
+                  onChange={(e) => setImage(e.target.value)}
+                  placeholder="https://... (খালি রাখলে ডিফল্ট ছবি বসবে)"
+                  className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:ring-1 focus:ring-[#2271b1] focus:border-[#2271b1] outline-none"
+                />
+                <label className="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-blue-50 hover:border-blue-300 border border-gray-200 px-3 py-1 rounded text-xs text-gray-700 cursor-pointer">
+                  <i className="fa fa-upload text-[#2271b1]"></i>
+                  <span>ছবি আপলোড করুন</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        try {
+                          const compressed = await compressImage(file, 400, 400, 0.75);
+                          setImage(compressed);
+                        } catch (err) {
+                          console.error('Error compressing member image:', err);
+                        }
+                      }
+                    }}
+                  />
+                </label>
+              </div>
               {image && (
                 <div className="mt-2 w-20 h-20 rounded border overflow-hidden">
                   <img src={image} alt="Preview" className="w-full h-full object-cover" />

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NewsArticle, CategoryItem } from '../../types';
 import { AdminTab } from './AdminLayout';
+import { compressImage } from '../../lib/imageCompressor';
 
 interface PostEditorProps {
   initialArticle?: NewsArticle | null;
@@ -119,17 +120,16 @@ export const PostEditor: React.FC<PostEditorProps> = ({
     setShowNewCatInput(false);
   };
 
-  // Image Upload handler for local file preview
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Image Upload handler for local file with auto compression
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          setImage(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImage(file, 800, 600, 0.75);
+        setImage(compressed);
+      } catch (err) {
+        console.error('Error compressing image:', err);
+      }
     }
   };
 

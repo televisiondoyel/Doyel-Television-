@@ -73,7 +73,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="max-w-2xl">
             <h2 className="text-xl font-medium text-[#1d2327] mb-2">
-              প্রফেশনাল নিউজ অ্যাডমিন প্যানেলে স্বাগতম!
+              দোয়েল টেলিভিশন অ্যাডমিন প্যানেলে স্বাগতম!
             </h2>
             <p className="text-[14px] text-[#50575e] leading-relaxed">
               এখানে যেকোনো পরিবর্তন রিয়েল-টাইম ফায়ারবেস ক্লাউড ডাটাবেজে তাৎক্ষণিক স্বয়ংক্রিয়ভাবে সংরক্ষিত (Auto-saved) হয়। আপনি সংবাদ যোগ, এডিট, ব্রেকিং স্ক্রোলিং শিরোনাম, ফটো গ্যালারি, ভিডিও ও পোর্টাল সেটিংস নিয়ন্ত্রণ করতে পারেন।
@@ -81,14 +81,20 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
           </div>
           <div className="flex flex-wrap gap-2.5 shrink-0">
             <button
-              onClick={() => onNavigate('settings')}
-              className="bg-[#f6f7f7] hover:bg-[#f0f0f1] text-[#2271b1] border border-[#2271b1] text-[13px] font-medium px-3.5 py-2 rounded transition-colors"
+              onClick={() => onNavigate('profile')}
+              className="bg-[#2271b1] hover:bg-[#135e96] text-white text-[13px] font-medium px-3.5 py-2 rounded shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              <i className="fa fa-sliders mr-1.5"></i> সেটিংস পরিবর্তন
+              <i className="fa fa-user-circle text-white"></i> প্রোফাইল সম্পাদন
+            </button>
+            <button
+              onClick={() => onNavigate('settings')}
+              className="bg-[#f6f7f7] hover:bg-[#f0f0f1] text-[#2271b1] border border-[#2271b1] text-[13px] font-medium px-3.5 py-2 rounded transition-colors cursor-pointer"
+            >
+              <i className="fa fa-sliders mr-1.5"></i> পোর্টাল সেটিংস
             </button>
             <button
               onClick={() => onNavigate('ticker')}
-              className="bg-[#f6f7f7] hover:bg-[#f0f0f1] text-[#2271b1] border border-[#2271b1] text-[13px] font-medium px-3.5 py-2 rounded transition-colors"
+              className="bg-[#f6f7f7] hover:bg-[#f0f0f1] text-[#2271b1] border border-[#2271b1] text-[13px] font-medium px-3.5 py-2 rounded transition-colors cursor-pointer"
             >
               <i className="fa fa-bolt mr-1.5 text-yellow-600"></i> শিরোনাম এডিট
             </button>

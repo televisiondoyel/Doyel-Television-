@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PhotoSlide, VideoSlide } from '../../types';
+import { compressImage } from '../../lib/imageCompressor';
 
 interface MediaManagerProps {
   type: 'photos' | 'videos';
@@ -115,15 +116,37 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
               </div>
 
               <div>
-                <label className="block font-semibold mb-1">ছবির লিঙ্ক (Image URL):</label>
-                <input
-                  type="url"
-                  value={photoUrl}
-                  onChange={(e) => setPhotoUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full text-xs border border-gray-300 rounded px-3 py-1.5 outline-none focus:border-[#2271b1]"
-                  required
-                />
+                <label className="block font-semibold mb-1">ছবির লিঙ্ক (Image URL) অথবা আপলোড:</label>
+                <div className="space-y-1.5">
+                  <input
+                    type="url"
+                    value={photoUrl}
+                    onChange={(e) => setPhotoUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full text-xs border border-gray-300 rounded px-3 py-1.5 outline-none focus:border-[#2271b1]"
+                    required
+                  />
+                  <label className="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-blue-50 hover:border-blue-300 border border-gray-200 px-3 py-1 rounded text-xs text-gray-700 cursor-pointer">
+                    <i className="fa fa-upload text-[#2271b1]"></i>
+                    <span>ছবি আপলোড করুন</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          try {
+                            const compressed = await compressImage(file, 800, 600, 0.75);
+                            setPhotoUrl(compressed);
+                          } catch (err) {
+                            console.error('Error compressing photo:', err);
+                          }
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
               </div>
 
               {photoUrl && (

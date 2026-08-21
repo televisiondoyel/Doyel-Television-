@@ -34,6 +34,7 @@ interface AdminDashboardProps {
   siteSettings: SiteSettings;
   familyMembers: FamilyMember[];
   onExitAdmin: () => void;
+  onLogout?: () => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -45,6 +46,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   siteSettings,
   familyMembers,
   onExitAdmin,
+  onLogout,
 }) => {
   const [currentTab, setCurrentTab] = useState<AdminTab>('dashboard');
   const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
@@ -216,6 +218,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       currentTab={currentTab}
       onSelectTab={(tab) => handleNavigate(tab)}
       onExitAdmin={onExitAdmin}
+      onLogout={onLogout}
       siteSettings={siteSettings}
       autoSaveStatus={autoSaveStatus}
       lastSavedText={lastSavedTime ? `সর্বশেষ সেভ: ${lastSavedTime}` : undefined}
@@ -318,12 +321,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         />
       )}
 
-      {/* 9. Site Settings */}
-      {currentTab === 'settings' && (
+      {/* 9. Site Settings & Admin Profile */}
+      {(currentTab === 'settings' || currentTab === 'profile' || currentTab === 'users') && (
         <SettingsManager
+          key={currentTab === 'profile' || currentTab === 'users' ? 'admin-profile-view' : 'portal-settings-view'}
           settings={siteSettings}
           onSaveSettings={handleSaveSettings}
           autoSaveStatus={autoSaveStatus}
+          initialSubTab={currentTab === 'profile' || currentTab === 'users' ? 'profile' : 'general'}
         />
       )}
 

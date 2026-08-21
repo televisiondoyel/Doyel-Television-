@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { NewsArticle, PhotoSlide, VideoSlide, TickerItem, CategoryItem, SiteSettings, FamilyMember } from '../types';
+import { sanitizeImageUrl, compressImage } from './imageCompressor';
 import {
   leadStory,
   sideLeadNews,
@@ -39,28 +40,31 @@ import {
 } from '../data/newsData';
 
 export const defaultSettings: SiteSettings = {
-  siteTitle: 'Professional News - সত্যের সন্ধানে নির্ভীক',
+  siteTitle: 'Doyel Television - সত্যের সন্ধানে নির্ভীক',
   siteTagline: 'স্বাধীন ও নিরপেক্ষ বাংলা অনলাইন নিউজ পোর্টাল',
   siteLogo: 'https://newssitedesign.com/professionalnews/wp-content/uploads/2017/11/logo.png',
   editorName: 'সম্পাদক ও প্রকাশক : এম. এ. রহমান',
-  publisherName: 'দৈনিক প্রফেশনাল নিউজ লিমিটেড',
+  publisherName: 'দোয়েল টেলিভিশন লিমিটেড',
   contactAddress: '৫৮/১ পুরানা পল্টন, ঢাকা-১০০০, বাংলাদেশ',
   contactPhone: '+৮৮০ ২ ৯৫৫xxxx, +৮৮০ ১৭xxxxxxxx',
-  contactEmail: 'editor@professionalnews.com',
+  contactEmail: 'editor@doyeltelevision.com',
   facebookUrl: 'https://facebook.com',
   twitterUrl: 'https://twitter.com',
   youtubeUrl: 'https://youtube.com',
   instagramUrl: 'https://instagram.com',
-  headerNotice: 'স্বাগতম প্রফেশনাল নিউজ পোর্টালে - বস্তুনিষ্ঠ ও সত্য সংবাদে অবিচল',
+  headerNotice: 'স্বাগতম দোয়েল টেলিভিশন পোর্টালে - বস্তুনিষ্ঠ ও সত্য সংবাদে অবিচল',
   tickerTitle: 'শিরোনাম :',
-  footerText: 'স্বত্ব © ২০২৬ প্রফেশনাল নিউজ। সর্বস্বত্ব সংরক্ষিত। অনুমতি ছাড়া যেকোনো বিষয়বস্তু পুনঃপ্রকাশ সম্পূর্ণ নিষিদ্ধ।',
-  headerAdImage: 'https://newssitedesign.com/professionalnews/wp-content/uploads/2017/11/add-728x90.jpg',
-  sidebarAdImage: 'https://newssitedesign.com/professionalnews/wp-content/uploads/2017/11/ad-300x250.jpg',
-  bodyAdImage: 'https://newssitedesign.com/professionalnews/wp-content/uploads/2017/11/ad-728x90-middle.jpg',
+  footerText: 'স্বত্ব © ২০২৬ দোয়েল টেলিভিশন। সর্বস্বত্ব সংরক্ষিত। অনুমতি ছাড়া যেকোনো বিষয়বস্তু পুনঃপ্রকাশ সম্পূর্ণ নিষিদ্ধ।',
+  headerAdImage: '',
+  headerAdUrl: '',
+  sidebarAdImage: '',
+  sidebarAdUrl: '',
+  bodyAdImage: '',
+  bodyAdUrl: '',
   adminName: 'প্রধান সম্পাদক',
-  adminEmail: 'admin@professionalnews.com',
+  adminEmail: 'admin@doyeltelevision.com',
   adminAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-  adminBio: 'প্রফেশনাল নিউজ পোর্টালের প্রধান নির্বাহী ও বার্তা সম্পাদক।',
+  adminBio: 'দোয়েল টেলিভিশন পোর্টালের প্রধান নির্বাহী ও বার্তা সম্পাদক।',
   adminPhone: '+৮৮০ ১৭xxxxxxxx',
   adminDesignation: 'প্রধান সম্পাদক ও প্রশাসক'
 };
@@ -379,12 +383,21 @@ export async function saveArticleToDb(article: Partial<NewsArticle> & { title: s
   const artRef = doc(db, 'articles', id);
   const now = new Date().toISOString();
 
+  let finalImg = article.image || 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&auto=format&fit=crop&q=80';
+  if (finalImg.startsWith('data:image/')) {
+    try {
+      finalImg = await sanitizeImageUrl(finalImg, 800);
+    } catch (e) {
+      console.warn('Could not compress article image:', e);
+    }
+  }
+
   const dataToSave: NewsArticle = {
     id,
     title: article.title || '',
     category: article.category || 'জাতীয়',
     subcategory: article.subcategory || '',
-    image: article.image || 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&auto=format&fit=crop&q=80',
+    image: finalImg,
     fallbackImage: article.fallbackImage || 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&auto=format&fit=crop&q=80',
     excerpt: article.excerpt || article.content?.slice(0, 150) || '',
     content: article.content || '',
@@ -422,7 +435,44 @@ export async function deleteArticleFromDb(id: string): Promise<void> {
 
 export async function saveSiteSettingsToDb(settings: Partial<SiteSettings>): Promise<void> {
   const docRef = doc(db, 'site_settings', 'main');
-  await setDoc(docRef, settings, { merge: true });
+  const sanitized: Record<string, any> = { ...settings };
+
+  // Compress image fields if they are Base64 strings to stay well within Firestore's 1MB limit
+  const imageKeys: (keyof SiteSettings)[] = [
+    'siteLogo',
+    'adminAvatar',
+    'headerAdImage',
+    'sidebarAdImage',
+    'bodyAdImage',
+  ];
+
+  for (const key of imageKeys) {
+    const val = sanitized[key];
+    if (typeof val === 'string' && val.startsWith('data:image/')) {
+      try {
+        sanitized[key] = await sanitizeImageUrl(val, 600);
+      } catch (e) {
+        console.warn(`Could not compress setting image for ${key}:`, e);
+      }
+    }
+  }
+
+  // Safety check: ensure total size does not exceed 700KB
+  try {
+    const jsonStr = JSON.stringify(sanitized);
+    if (jsonStr.length > 700000) {
+      for (const key of imageKeys) {
+        const val = sanitized[key];
+        if (typeof val === 'string' && val.startsWith('data:image/')) {
+          sanitized[key] = await compressImage(val, 300, 300, 0.5);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Payload size check error:', e);
+  }
+
+  await setDoc(docRef, sanitized, { merge: true });
 }
 
 export async function saveCategoryToDb(category: CategoryItem): Promise<void> {
@@ -437,11 +487,20 @@ export async function deleteCategoryFromDb(id: string): Promise<void> {
 export async function savePhotoToDb(photo: Partial<PhotoSlide>): Promise<string> {
   const id = photo.id || 'photo-' + Date.now();
   const docRef = doc(db, 'photos', id);
+  let finalImg = photo.image || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&auto=format&fit=crop&q=80';
+  if (finalImg.startsWith('data:image/')) {
+    try {
+      finalImg = await sanitizeImageUrl(finalImg, 800);
+    } catch (e) {
+      console.warn('Could not compress photo image:', e);
+    }
+  }
+
   const data: PhotoSlide = {
     id,
     title: photo.title || 'ছবির শিরোনাম',
     caption: photo.caption || photo.title || '',
-    image: photo.image || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&auto=format&fit=crop&q=80',
+    image: finalImg,
     date: photo.date || new Date().toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' })
   };
   await setDoc(docRef, data, { merge: true });
@@ -501,11 +560,20 @@ export function subscribeToFamilyMembers(callback: (members: FamilyMember[]) => 
 export async function saveFamilyMemberToDb(member: Partial<FamilyMember>): Promise<string> {
   const id = member.id || 'fam-' + Date.now();
   const docRef = doc(db, 'family_members', id);
+  let finalImg = member.image || 'https://newssitedesign.com/professionalnews/wp-content/uploads/2018/01/Blank-Image-1.png';
+  if (finalImg.startsWith('data:image/')) {
+    try {
+      finalImg = await sanitizeImageUrl(finalImg, 600);
+    } catch (e) {
+      console.warn('Could not compress member image:', e);
+    }
+  }
+
   const data: FamilyMember = {
     id,
     name: member.name || 'সদস্যের নাম',
     designation: member.designation || 'বার্তা ইনচার্জ',
-    image: member.image || 'https://newssitedesign.com/professionalnews/wp-content/uploads/2018/01/Blank-Image-1.png',
+    image: finalImg,
     phone: member.phone || '',
     email: member.email || '',
     bio: member.bio || '',
@@ -517,4 +585,46 @@ export async function saveFamilyMemberToDb(member: Partial<FamilyMember>): Promi
 
 export async function deleteFamilyMemberFromDb(id: string): Promise<void> {
   await deleteDoc(doc(db, 'family_members', id));
+}
+
+export interface AdminAuthRecord {
+  username: string;
+  email: string;
+  passwordHash: string; // Stored password
+  fullName: string;
+  registeredAt: string;
+  role: 'Administrator';
+}
+
+export async function getRegisteredAdminFromDb(): Promise<AdminAuthRecord | null> {
+  try {
+    const docRef = doc(db, 'admin_auth', 'master_admin');
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      return snap.data() as AdminAuthRecord;
+    }
+  } catch (err) {
+    console.error('Error fetching admin auth record:', err);
+  }
+  return null;
+}
+
+export async function registerMasterAdminInDb(admin: Omit<AdminAuthRecord, 'registeredAt' | 'role'>): Promise<AdminAuthRecord> {
+  const docRef = doc(db, 'admin_auth', 'master_admin');
+  const existing = await getDoc(docRef);
+  if (existing.exists()) {
+    throw new Error('অ্যাডমিন ইতিমধ্যেই নিবন্ধিত রয়েছে। দ্বিতীয় কোনো ব্যক্তি নিবন্ধন করতে পারবেন না।');
+  }
+
+  const record: AdminAuthRecord = {
+    username: admin.username.trim(),
+    email: admin.email.trim().toLowerCase(),
+    passwordHash: admin.passwordHash,
+    fullName: admin.fullName.trim() || admin.username.trim(),
+    registeredAt: new Date().toISOString(),
+    role: 'Administrator',
+  };
+
+  await setDoc(docRef, record);
+  return record;
 }

@@ -12,12 +12,15 @@ import { CategoryArchivePage } from './components/CategoryArchivePage';
 import { OurFamilyPage } from './components/OurFamilyPage';
 import { Footer } from './components/Footer';
 import { AdminDashboard } from './components/admin/AdminDashboard';
+import { WordPressAuth } from './components/admin/WordPressAuth';
 import {
   leadStory as defaultLead,
   sideLeadNews as defaultSideLead,
   gridSectionTwoCards as defaultGridTwo,
   nationalNewsMain as defaultNationalMain,
   nationalNewsList as defaultNationalList,
+  politicsFeatured as defaultPoliticsFeatured,
+  politicsList as defaultPoliticsList,
   internationalNews as defaultInternational,
   economyNews as defaultEconomy,
   lawNews as defaultLaw,
@@ -50,6 +53,13 @@ import {
 export default function App() {
   // Navigation & View States
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    try {
+      return !!localStorage.getItem('wp_logged_in_user');
+    } catch {
+      return false;
+    }
+  });
   const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
   const [currentFilterCategory, setCurrentFilterCategory] = useState<string>('প্রচ্ছদ');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -86,7 +96,7 @@ export default function App() {
           category: 'জাতীয়',
           image: 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&auto=format&fit=crop&q=80',
           excerpt: 'এই সংবাদটি সম্পর্কে বিস্তারিত বিবরণ শীঘ্রই প্রকাশিত হবে।',
-          content: `দেশ ও বিদেশের সর্বশেষ নির্ভরযোগ্য সংবাদ পেতে চোখ রাখুন প্রফেশনাল নিউজ পোর্টালে। সত্য ও বস্তুনিষ্ঠ সাংবাদিকতায় আমরা সদা অঙ্গীকারবদ্ধ।`,
+          content: `দেশ ও বিদেশের সর্বশেষ নির্ভরযোগ্য সংবাদ পেতে চোখ রাখুন দোয়েল টেলিভিশন পোর্টালে। সত্য ও বস্তুনিষ্ঠ সাংবাদিকতায় আমরা সদা অঙ্গীকারবদ্ধ।`,
           date: '২১ অগাস্ট ২০২৬',
           author: 'অনলাইন ডেস্ক',
         };
@@ -415,9 +425,19 @@ export default function App() {
   );
 
   // ----------------------------------------------------
-  // FULL PAGE ADMIN DASHBOARD VIEW
+  // FULL PAGE ADMIN DASHBOARD VIEW (WITH WORDPRESS AUTH)
   // ----------------------------------------------------
   if (isAdminOpen) {
+    if (!isAuthenticated) {
+      return (
+        <WordPressAuth
+          siteSettings={siteSettings}
+          onLoginSuccess={() => setIsAuthenticated(true)}
+          onBackToSite={() => handleExitAdmin(true)}
+        />
+      );
+    }
+
     return (
       <AdminDashboard
         articles={allArticles}
@@ -428,6 +448,15 @@ export default function App() {
         siteSettings={siteSettings}
         familyMembers={familyMembers.length > 0 ? familyMembers : defaultFamilyMembers}
         onExitAdmin={() => handleExitAdmin(true)}
+        onLogout={() => {
+          try {
+            localStorage.removeItem('wp_logged_in_user');
+          } catch (e) {
+            console.error(e);
+          }
+          setIsAuthenticated(false);
+          handleExitAdmin(true);
+        }}
       />
     );
   }

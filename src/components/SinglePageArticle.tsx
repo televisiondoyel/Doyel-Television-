@@ -37,7 +37,7 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
       id: '1',
       name: 'মোঃ রফিকুল ইসলাম',
       email: 'rafiq@example.com',
-      comment: 'খুবই সময়োপযোগী ও বস্তুনিষ্ঠ প্রতিবেদন। ধন্যবাদ প্রফেশনাল নিউজ টিমকে।',
+      comment: 'খুবই সময়োপযোগী ও বস্তুনিষ্ঠ প্রতিবেদন। ধন্যবাদ দোয়েল টেলিভিশন টিমকে।',
       date: 'আজ, ১০:১৫ পূর্বাহ্ন',
     },
   ]);
@@ -676,7 +676,7 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
             </div>
             <div className="bg-[#1877F2] text-white p-3 rounded text-center">
               <i className="fa fa-facebook-square text-3xl mb-1"></i>
-              <p className="font-bold text-sm">Professional News Portal</p>
+              <p className="font-bold text-sm">Doyel Television</p>
               <p className="text-[11px] text-blue-100 mb-2">৫২,৪০০ লাইক • ফেসবুক পেজ ফলো করুন</p>
               <a
                 href="https://facebook.com/themesbazar"

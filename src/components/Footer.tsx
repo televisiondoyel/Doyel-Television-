@@ -25,12 +25,12 @@ export const Footer: React.FC<FooterProps> = ({ settings, onOpenAdmin }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const title = settings?.siteTitle ? settings.siteTitle.split('-')[0].trim() : 'Professional News';
+  const title = settings?.siteTitle ? settings.siteTitle.split('-')[0].trim() : 'Doyel Television';
   const tagline = settings?.siteTagline || 'অনলাইন বাংলা সংবাদপত্র';
   const address = settings?.contactAddress || 'বাণিজ্যিক ভবন, পুরানা পল্টন, ঢাকা-১০০০';
   const phone = settings?.contactPhone || '০১৭০০-০০০০০০';
-  const email = settings?.contactEmail || 'editor@professionalnews.com';
-  const footerText = settings?.footerText || 'স্বত্ব © ২০২৬ প্রফেশনাল নিউজ। সর্বস্বত্ব সংরক্ষিত।';
+  const email = settings?.contactEmail || 'editor@doyeltelevision.com';
+  const footerText = settings?.footerText || 'স্বত্ব © ২০২৬ দোয়েল টেলিভিশন। সর্বস্বত্ব সংরক্ষিত।';
 
   return (
     <footer className="mt-6">
@@ -40,10 +40,18 @@ export const Footer: React.FC<FooterProps> = ({ settings, onOpenAdmin }) => {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
             {/* Footer Logo */}
             <div className="md:col-span-4 flex items-center justify-center md:justify-start">
-              <div className="flex items-center gap-2">
-                <div className="bg-[#004F8A] text-white p-2 rounded font-bold text-xl">
-                  PN
-                </div>
+              <div className="flex items-center gap-2.5">
+                {settings?.siteLogo ? (
+                  <img
+                    src={settings.siteLogo}
+                    alt={title}
+                    className="max-h-12 w-auto max-w-[140px] object-contain shrink-0 bg-white/10 p-1 rounded"
+                  />
+                ) : (
+                  <div className="bg-[#004F8A] text-white p-2 rounded font-bold text-xl shrink-0">
+                    PN
+                  </div>
+                )}
                 <div>
                   <h3 className="text-xl font-bold text-white leading-none">
                     {title}
@@ -120,19 +128,6 @@ export const Footer: React.FC<FooterProps> = ({ settings, onOpenAdmin }) => {
       <div className="root p-3 bg-[#282828] text-xs text-[#B8B8B8]">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl mx-auto">
           <div>{footerText}</div>
-          <div className="flex items-center gap-3">
-            {onOpenAdmin && (
-              <button
-                onClick={onOpenAdmin}
-                className="text-gray-400 hover:text-white flex items-center gap-1 hover:underline"
-              >
-                <i className="fa fa-lock text-[10px]"></i> অ্যাডমিন প্রবেশ
-              </button>
-            )}
-            <span>
-              ThemesBazar.Com
-            </span>
-          </div>
         </div>
       </div>
 

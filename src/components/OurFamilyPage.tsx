@@ -135,7 +135,7 @@ export const OurFamilyPage: React.FC<OurFamilyPageProps> = ({
                         : 'সম্পাদকীয় পরিষদ')}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    প্রফেশনাল নিউজ ডিজিটাল মিডিয়া
+                    দোয়েল টেলিভিশন ডিজিটাল মিডিয়া
                   </p>
 
                   <div className="mt-4 space-y-1.5 text-xs text-gray-700">
@@ -162,7 +162,7 @@ export const OurFamilyPage: React.FC<OurFamilyPageProps> = ({
                 </h5>
                 <p className="text-sm text-gray-700 leading-relaxed">
                   {selectedMember.bio ||
-                    `${selectedMember.name} প্রফেশনাল নিউজ পরিবারের একজন দায়িত্বশীল সদস্য হিসেবে বস্তুনিষ্ঠ তথ্য পরিবেশনে অবদান রাখছেন।`}
+                    `${selectedMember.name} দোয়েল টেলিভিশন পরিবারের একজন দায়িত্বশীল সদস্য হিসেবে বস্তুনিষ্ঠ তথ্য পরিবেশনে অবদান রাখছেন।`}
                 </p>
               </div>
             </div>

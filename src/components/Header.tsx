@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SiteSettings } from '../types';
+import { AdBanner } from './AdBanner';
 
 interface HeaderProps {
   onSearch: (query: string) => void;
@@ -10,6 +11,38 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onSearch, siteSettings, onOpenAdmin }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [bengaliDate, setBengaliDate] = useState('');
+  const [imgError, setImgError] = useState(false);
+
+  // 5-click handler on logo to trigger admin dashboard
+  const [clickCount, setClickCount] = useState(0);
+  const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const nextCount = clickCount + 1;
+    setClickCount(nextCount);
+
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current);
+    }
+
+    if (nextCount >= 5) {
+      setClickCount(0);
+      if (onOpenAdmin) {
+        onOpenAdmin();
+      }
+    } else {
+      // Reset after 3 seconds of inactivity
+      clickTimerRef.current = setTimeout(() => {
+        setClickCount(0);
+      }, 3000);
+    }
+  };
+
+  useEffect(() => {
+    // Reset img error if logo changes
+    setImgError(false);
+  }, [siteSettings?.siteLogo]);
 
   useEffect(() => {
     // Generate Bengali formatted date
@@ -48,40 +81,34 @@ export const Header: React.FC<HeaderProps> = ({ onSearch, siteSettings, onOpenAd
     }
   };
 
-  const title = siteSettings?.siteTitle ? siteSettings.siteTitle.split('-')[0].trim() : 'Professional News';
+  const title = siteSettings?.siteTitle ? siteSettings.siteTitle.split('-')[0].trim() : 'Doyel Television';
   const tagline = siteSettings?.siteTagline || 'সত্য ও ন্যায়ের নির্ভীক কণ্ঠস্বর';
 
   return (
     <header className="pt-2 pb-3 border-b border-gray-200">
-      {/* Top Admin Bar Shortcut */}
-      {onOpenAdmin && (
-        <div className="bg-[#1d2327] text-[#c3c4c7] px-3 py-1 mb-2 rounded flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <span className="w-4 h-4 rounded-full bg-[#2271b1] flex items-center justify-center text-[10px] font-black text-white">
-              W
-            </span>
-            <span className="font-medium text-white">WordPress CMS ড্যাশবোর্ড সক্রিয়</span>
-          </div>
-          <button
-            onClick={onOpenAdmin}
-            className="bg-[#2271b1] hover:bg-[#135e96] text-white px-2.5 py-0.5 rounded font-medium text-[11.5px] transition-colors flex items-center gap-1.5"
-          >
-            <i className="fa fa-tachometer"></i>
-            <span>এডমিন ড্যাশবোর্ডে যান</span>
-          </button>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-        {/* Logo */}
+        {/* Logo with 5-click secret admin entrance */}
         <div className="md:col-span-4 flex justify-center md:justify-start">
-          <a href="#" className="inline-block group">
+          <div
+            onClick={handleLogoClick}
+            className="inline-block cursor-pointer select-none"
+            title="৫ বার ক্লিক করে অ্যাডমিন প্যানেল খুলুন"
+          >
             <div className="flex items-center gap-2.5">
-              <div className="bg-[#004F8A] text-white p-2.5 rounded shadow-sm flex items-center justify-center font-bold text-2xl tracking-tighter shrink-0">
-                PN
-              </div>
+              {siteSettings?.siteLogo && !imgError ? (
+                <img
+                  src={siteSettings.siteLogo}
+                  alt={title}
+                  onError={() => setImgError(true)}
+                  className="max-h-14 sm:max-h-16 w-auto max-w-[160px] object-contain shrink-0"
+                />
+              ) : (
+                <div className="bg-[#004F8A] text-white p-2.5 rounded shadow-sm flex items-center justify-center font-bold text-2xl tracking-tighter shrink-0">
+                  PN
+                </div>
+              )}
               <div>
-                <h1 className="text-2xl lg:text-3xl font-extrabold text-[#004F8A] tracking-tight group-hover:text-[#9A1515] transition-colors leading-none">
+                <h1 className="text-2xl lg:text-3xl font-extrabold text-[#004F8A] tracking-tight hover:text-[#9A1515] transition-colors leading-none">
                   {title}
                 </h1>
                 <p className="text-xs text-gray-500 font-medium tracking-wide mt-0.5">
@@ -89,7 +116,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearch, siteSettings, onOpenAd
                 </p>
               </div>
             </div>
-          </a>
+          </div>
         </div>
 
         {/* Date and Search Box */}
@@ -110,7 +137,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearch, siteSettings, onOpenAd
             />
             <button
               type="submit"
-              className="bg-[#004F8A] hover:bg-[#1F4565] text-white px-4 py-1.5 text-sm font-semibold rounded-r transition-colors flex items-center gap-1 shrink-0"
+              className="bg-[#004F8A] hover:bg-[#1F4565] text-white px-4 py-1.5 text-sm font-semibold rounded-r transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
             >
               <i className="fa fa-search text-xs"></i>
               <span>খুজুন</span>
@@ -118,27 +145,17 @@ export const Header: React.FC<HeaderProps> = ({ onSearch, siteSettings, onOpenAd
           </form>
         </div>
 
-        {/* Banner Ad */}
+        {/* Top Header Ad Banner */}
         <div className="md:col-span-4 flex justify-center md:justify-end">
-          <a
-            href="https://www.themesbazar.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full max-w-[468px] bg-gradient-to-r from-[#1F4565] to-[#004F8A] text-white rounded p-3 text-center shadow-sm hover:opacity-95 transition-opacity"
-          >
-            <div className="flex items-center justify-between px-2">
-              <div className="text-left">
-                <span className="text-[11px] uppercase tracking-wider bg-red-600 px-1.5 py-0.5 rounded font-bold">
-                  বিজ্ঞাপন
-                </span>
-                <p className="text-sm font-bold mt-0.5">ThemesBazar.Com</p>
-                <p className="text-xs text-blue-100">প্রিমিয়াম বাংলা নিউজ পোর্টাল থিম</p>
-              </div>
-              <div className="bg-white/15 px-3 py-1.5 rounded text-xs font-semibold hover:bg-white hover:text-[#004F8A] transition-colors">
-                এখনই কিনুন <i className="fa fa-arrow-right ml-1"></i>
-              </div>
-            </div>
-          </a>
+          <div className="w-full max-w-[468px]">
+            <AdBanner
+              image={siteSettings?.headerAdImage}
+              url={siteSettings?.headerAdUrl}
+              sizeLabel="৭২৮ x ৯০"
+              heightClass="h-20"
+              className="w-full"
+            />
+          </div>
         </div>
       </div>
     </header>

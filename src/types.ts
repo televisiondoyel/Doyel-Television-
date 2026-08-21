@@ -66,8 +66,11 @@ export interface SiteSettings {
   tickerTitle: string;
   footerText: string;
   headerAdImage?: string;
+  headerAdUrl?: string;
   sidebarAdImage?: string;
+  sidebarAdUrl?: string;
   bodyAdImage?: string;
+  bodyAdUrl?: string;
   adminName?: string;
   adminEmail?: string;
   adminAvatar?: string;

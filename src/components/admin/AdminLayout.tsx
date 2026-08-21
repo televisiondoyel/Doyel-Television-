@@ -11,6 +11,7 @@ export type AdminTab =
   | 'media-photos' 
   | 'media-videos' 
   | 'family'
+  | 'profile'
   | 'settings' 
   | 'users';
 
@@ -18,6 +19,7 @@ interface AdminLayoutProps {
   currentTab: AdminTab;
   onSelectTab: (tab: AdminTab) => void;
   onExitAdmin: () => void;
+  onLogout?: () => void;
   siteSettings: SiteSettings;
   autoSaveStatus: 'idle' | 'saving' | 'saved' | 'error';
   lastSavedText?: string;
@@ -28,6 +30,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   currentTab,
   onSelectTab,
   onExitAdmin,
+  onLogout,
   siteSettings,
   autoSaveStatus,
   lastSavedText,
@@ -167,6 +170,19 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         {(sidebarOpen || mobileDrawerOpen) && <span>আমাদের পরিবার</span>}
       </button>
 
+      {/* Admin Profile */}
+      <button
+        onClick={() => handleTabSelect('profile')}
+        className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-left transition-colors relative ${
+          currentTab === 'profile' || currentTab === 'users'
+            ? 'bg-[#2271b1] text-white font-semibold'
+            : 'hover:bg-[#131619] hover:text-[#72aee6]'
+        }`}
+      >
+        <i className="fa fa-user-circle w-4 text-center text-[15px] text-blue-400"></i>
+        {(sidebarOpen || mobileDrawerOpen) && <span>অ্যাডমিন প্রোফাইল</span>}
+      </button>
+
       {/* Settings */}
       <button
         onClick={() => handleTabSelect('settings')}
@@ -272,20 +288,32 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
               onClick={() => setUserDropdownOpen(!userDropdownOpen)}
               className="flex items-center gap-2 hover:text-[#72aee6] cursor-pointer"
             >
-              <span className="hidden sm:inline">শুভেচ্ছা, <strong>অ্যাডমিন</strong></span>
+              <span className="hidden sm:inline">শুভেচ্ছা, <strong>{siteSettings.adminName || 'অ্যাডমিন'}</strong></span>
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
+                src={siteSettings.adminAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"}
                 alt="Admin"
                 className="w-5 h-5 rounded-full border border-gray-600 object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80';
+                }}
               />
             </button>
 
             {userDropdownOpen && (
-              <div className="absolute right-0 mt-1 w-48 bg-[#1d2327] border border-[#2c3338] shadow-xl rounded py-1 z-50 text-[#c3c4c7]">
+              <div className="absolute right-0 mt-1 w-52 bg-[#1d2327] border border-[#2c3338] shadow-xl rounded py-1 z-50 text-[#c3c4c7]">
                 <div className="px-3 py-2 border-b border-[#2c3338] text-[12px]">
-                  <p className="font-bold text-white">প্রধান সম্পাদক</p>
-                  <p className="text-[11px] text-gray-400">admin@professionalnews.com</p>
+                  <p className="font-bold text-white truncate">{siteSettings.adminName || 'প্রধান সম্পাদক'}</p>
+                  <p className="text-[11px] text-gray-400 truncate">{siteSettings.adminEmail || 'admin@doyeltelevision.com'}</p>
                 </div>
+                <button
+                  onClick={() => {
+                    handleTabSelect('profile');
+                    setUserDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-1.5 hover:bg-[#2271b1] hover:text-white text-[12px] flex items-center gap-2 cursor-pointer"
+                >
+                  <i className="fa fa-user-circle text-blue-400"></i> অ্যাডমিন প্রোফাইল সম্পাদন
+                </button>
                 <button
                   onClick={() => {
                     handleTabSelect('settings');
@@ -293,10 +321,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                   }}
                   className="w-full text-left px-3 py-1.5 hover:bg-[#2271b1] hover:text-white text-[12px] flex items-center gap-2 cursor-pointer"
                 >
-                  <i className="fa fa-user"></i> প্রোফাইল ও সেটিংস
+                  <i className="fa fa-cogs"></i> পোর্টাল সেটিংস
                 </button>
                 <button
-                  onClick={onExitAdmin}
+                  onClick={() => {
+                    setUserDropdownOpen(false);
+                    if (onLogout) {
+                      onLogout();
+                    } else {
+                      onExitAdmin();
+                    }
+                  }}
                   className="w-full text-left px-3 py-1.5 hover:bg-[#d63638] hover:text-white text-[12px] flex items-center gap-2 text-red-300 cursor-pointer"
                 >
                   <i className="fa fa-sign-out"></i> লগআউট / সাইটে ফিরুন
