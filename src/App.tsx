@@ -11,6 +11,7 @@ import { SinglePageArticle } from './components/SinglePageArticle';
 import { CategoryArchivePage } from './components/CategoryArchivePage';
 import { OurFamilyPage } from './components/OurFamilyPage';
 import { Footer } from './components/Footer';
+import { AdBanner } from './components/AdBanner';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { WordPressAuth } from './components/admin/WordPressAuth';
 import {
@@ -382,45 +383,18 @@ export default function App() {
   // Reusable Ad Banner Row
   const renderAdBannerRow = (key: string) => (
     <div key={key} className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
-      <a
-        href="https://themesbazar.com/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block bg-gradient-to-r from-[#004F8A] to-[#1F4565] text-white rounded p-4 text-center shadow-xs hover:opacity-95 transition-opacity"
-      >
-        <div className="flex items-center justify-between">
-          <div className="text-left">
-            <span className="text-[10px] uppercase tracking-wider bg-red-600 px-1.5 py-0.5 rounded font-bold">
-              বিজ্ঞাপন
-            </span>
-            <p className="font-bold text-base mt-1">ThemesBazar.Com</p>
-            <p className="text-xs text-blue-100">রেস্পন্সিভ নিউজ পোর্টাল থিম ডাউনলোড করুন</p>
-          </div>
-          <div className="bg-white text-[#004F8A] font-bold text-xs px-3 py-1.5 rounded shadow-xs">
-            ক্লিক করুন
-          </div>
-        </div>
-      </a>
-
-      <a
-        href="https://themesbazar.com/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block bg-gradient-to-r from-[#9A1515] to-[#7D0101] text-white rounded p-4 text-center shadow-xs hover:opacity-95 transition-opacity"
-      >
-        <div className="flex items-center justify-between">
-          <div className="text-left">
-            <span className="text-[10px] uppercase tracking-wider bg-yellow-400 text-black px-1.5 py-0.5 rounded font-bold">
-              স্পেশাল অফার
-            </span>
-            <p className="font-bold text-base mt-1">প্রফেশনাল ওয়েবসাইট ডেভেলপমেন্ট</p>
-            <p className="text-xs text-red-100">আপনার নিজস্ব অনলাইন পত্রিকার জন্য যোগাযোগ করুন</p>
-          </div>
-          <div className="bg-white text-[#9A1515] font-bold text-xs px-3 py-1.5 rounded shadow-xs">
-            অর্ডার করুন
-          </div>
-        </div>
-      </a>
+      <AdBanner
+        image={siteSettings?.bodyAdImage}
+        url={siteSettings?.bodyAdUrl}
+        sizeLabel="৩৬০ x ৯০"
+        heightClass="h-24"
+      />
+      <AdBanner
+        image={siteSettings?.bodyAdImage}
+        url={siteSettings?.bodyAdUrl}
+        sizeLabel="৩৬০ x ৯০"
+        heightClass="h-24"
+      />
     </div>
   );
 
@@ -494,6 +468,7 @@ export default function App() {
               article={selectedArticle}
               onClose={() => setSelectedArticle(null)}
               onSelectArticle={handleOpenArticle}
+              siteSettings={siteSettings}
             />
           ) : filteredArticles !== null ? (
             <CategoryArchivePage
@@ -501,6 +476,7 @@ export default function App() {
               articles={filteredArticles}
               onSelectArticle={handleOpenArticle}
               onClose={() => handleCategorySelect('প্রচ্ছদ')}
+              siteSettings={siteSettings}
             />
           ) : currentFilterCategory === 'আমাদের পরিবার' ? (
             /* Our Family / Editorial Board View */

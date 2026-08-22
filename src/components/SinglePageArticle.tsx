@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { NewsArticle } from '../types';
+import { NewsArticle, SiteSettings } from '../types';
 import { ImageWithFallback } from './ImageWithFallback';
+import { AdBanner } from './AdBanner';
 import {
   leadStory,
   sideLeadNews,
@@ -16,6 +17,7 @@ interface SinglePageArticleProps {
   article: NewsArticle;
   onClose: () => void;
   onSelectArticle: (idOrTitle: string | number) => void;
+  siteSettings?: SiteSettings;
 }
 
 interface CommentItem {
@@ -30,6 +32,7 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
   article,
   onClose,
   onSelectArticle,
+  siteSettings,
 }) => {
   const [activeTab, setActiveTab] = useState<'latest' | 'popular'>('latest');
   const [comments, setComments] = useState<CommentItem[]>([
@@ -163,27 +166,12 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
         <div className="lg:col-span-8">
           {/* Top Advertisement Banner */}
           <div className="biggapon mb-4">
-            <div className="widget_area">
-              <a
-                href="https://themesbazar.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block bg-gradient-to-r from-[#004F8A] to-[#1F4565] text-white p-3 sm:p-4 text-center rounded border border-[#004F8A] shadow-xs hover:opacity-95 transition-opacity"
-              >
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-                  <div className="text-left">
-                    <span className="text-[10px] uppercase tracking-wider bg-red-600 px-2 py-0.5 rounded font-bold text-white">
-                      বিজ্ঞাপন
-                    </span>
-                    <h4 className="font-bold text-base sm:text-lg text-white mt-1">ThemesBazar.Com</h4>
-                    <p className="text-xs text-blue-100">প্রফেশনাল ওয়ার্ডপ্রেস নিউজ থিম ও ডেভেলপমেন্ট সার্ভিস</p>
-                  </div>
-                  <span className="bg-white text-[#004F8A] font-bold text-xs px-4 py-2 rounded shadow-xs hover:bg-gray-100 transition-colors">
-                    ভিজিট করুন
-                  </span>
-                </div>
-              </a>
-            </div>
+            <AdBanner
+              image={siteSettings?.headerAdImage || siteSettings?.bodyAdImage}
+              url={siteSettings?.headerAdUrl || siteSettings?.bodyAdUrl}
+              sizeLabel="৭২৮ x ৯০"
+              heightClass="h-24"
+            />
           </div>
 
           {/* Breadcrumb Navigation */}
@@ -290,16 +278,10 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
               <>
                 <p className="indent-4 sm:indent-6">
                   {article.excerpt ||
-                    'ভারতের অন্যতম রাজনৈতিক দল জাতীয় কংগ্রেসের সভাপতি পদে রাহুল গান্ধীকে বসানোর প্রস্তাব পাস করেছে দলটির ওয়ার্কিং কমিটি।'}
+                    'দেশ ও বিদেশের সর্বশেষ নির্ভরযোগ্য সংবাদ পেতে চোখ রাখুন আমাদের পোর্টালে। সত্য ও বস্তুনিষ্ঠ সাংবাদিকতায় আমরা সদা অঙ্গীকারবদ্ধ।'}
                 </p>
                 <p className="indent-4 sm:indent-6">
-                  সোমবার নয়াদিল্লিতে কংগ্রেস সভানেত্রী সোনিয়া গান্ধীর ১০ জনপথের বাড়িতে বৈঠক বসে কংগ্রেস ওয়ার্কিং কমিটির। ওই বৈঠকেই রাহুল গান্ধীকে সভাপতি পদে বসাতে প্রস্তাব পাস হয়।
-                </p>
-                <p className="indent-4 sm:indent-6">
-                  কংগ্রেসের বর্তমান সভানেত্রী সোনিয়া গান্ধী বলেন, ‘রাহুল সভাপতি হলে দল আরও শক্তিশালী হবে। কংগ্রেসের পক্ষ থেকে জানানো হয়েছে, সাংগঠনিক নির্বাচনের বিজ্ঞপ্তি জারি করা হবে এবং নির্ধারিত সময়ের মধ্যেই পূর্ণাঙ্গ নেতৃত্ব দায়িত্ব নেবে।’
-                </p>
-                <p className="indent-4 sm:indent-6">
-                  এদিন কংগ্রেসের ওয়ার্কিং কমিটির বৈঠকে উপস্থিত ছিলেন ভারতের প্রাক্তন প্রধানমন্ত্রী মনমোহন সিং, মল্লিকার্জুন খাড়গে, আহমেদ পটেলসহ কংগ্রেসের প্রথম সারির জাতীয় নেতৃবৃন্দ।
+                  এদিন আয়োজিত বিশেষ আলোচনা সভায় সংশ্লিষ্ট খাতের বিশেষজ্ঞ ও বিশিষ্ট ব্যক্তিবর্গ উপস্থিত ছিলেন এবং সমসাময়িক গুরুত্বপূর্ণ নানা বিষয়ে আলোকপাত করেন।
                 </p>
               </>
             )}
@@ -307,28 +289,12 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
 
           {/* Middle Advertisement */}
           <div className="add my-6">
-            <div className="widget_area">
-              <a
-                href="https://themesbazar.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block bg-gradient-to-r from-[#8B0708] to-[#9A1515] text-white p-3.5 text-center rounded border border-red-700 shadow-xs hover:opacity-95 transition-opacity"
-              >
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-                  <div className="text-left">
-                    <span className="text-[10px] uppercase tracking-wider bg-yellow-400 text-black px-2 py-0.5 rounded font-bold">
-                      বিজ্ঞাপন
-                    </span>
-                    <p className="font-bold text-sm sm:text-base mt-1">
-                      অনলাইন নিউজ পোর্টাল তৈরিতে বিশ্বস্ত প্রতিষ্ঠান — ThemesBazar
-                    </p>
-                  </div>
-                  <span className="bg-white text-[#8B0708] font-bold text-xs px-3.5 py-1.5 rounded shadow-xs">
-                    বিস্তারিত জানুন
-                  </span>
-                </div>
-              </a>
-            </div>
+            <AdBanner
+              image={siteSettings?.bodyAdImage}
+              url={siteSettings?.bodyAdUrl}
+              sizeLabel="৭২৮ x ৯০"
+              heightClass="h-24"
+            />
           </div>
 
           {/* Social Share Section */}
@@ -572,21 +538,12 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
 
           {/* Bottom Advertisement Banner */}
           <div className="add my-6">
-            <div className="widget_area">
-              <a
-                href="https://themesbazar.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block bg-gradient-to-r from-[#1F4565] to-[#004F8A] text-white p-3 sm:p-4 text-center rounded border border-[#1F4565] shadow-xs hover:opacity-95 transition-opacity"
-              >
-                <p className="font-bold text-sm sm:text-base">
-                  আপনার অনলাইন নিউজ পোর্টালকে আরও আকর্ষণীয় ও আধুনিক রূপ দিতে আজই যোগাযোগ করুন
-                </p>
-                <span className="inline-block mt-1 text-xs bg-yellow-400 text-black font-bold px-3 py-1 rounded">
-                  ThemesBazar.Com
-                </span>
-              </a>
-            </div>
+            <AdBanner
+              image={siteSettings?.bodyAdImage}
+              url={siteSettings?.bodyAdUrl}
+              sizeLabel="৭২৮ x ৯০"
+              heightClass="h-24"
+            />
           </div>
         </div>
 
@@ -691,18 +648,12 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
 
           {/* Additional Sidebar Ad */}
           <div className="sidebar-ad mt-4">
-            <a
-              href="https://themesbazar.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block bg-[#1F4565] text-white p-4 rounded text-center border border-blue-900 shadow-xs hover:opacity-95 transition-opacity"
-            >
-              <span className="text-[10px] bg-red-600 px-2 py-0.5 rounded font-bold uppercase">
-                বিজ্ঞাপন
-              </span>
-              <h5 className="font-bold text-sm mt-1.5">অনলাইন পত্রিকা থিম</h5>
-              <p className="text-xs text-blue-200 mt-0.5">ThemesBazar.Com</p>
-            </a>
+            <AdBanner
+              image={siteSettings?.sidebarAdImage}
+              url={siteSettings?.sidebarAdUrl}
+              sizeLabel="৩০০ x ২৫০"
+              heightClass="h-60"
+            />
           </div>
         </div>
       </div>

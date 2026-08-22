@@ -147,7 +147,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
               : 'border-transparent text-gray-600 hover:text-[#2271b1]'
           }`}
         >
-          <i className="fa fa-user-circle mr-1.5 text-[#2271b1]"></i> অ্যাডমিন প্রোফাইল (Admin Profile)
+          <i className="fa fa-user-circle mr-1.5 text-[#2271b1]"></i> অ্যাডমিন প্রোফাইল
         </button>
 
         {/* General Tab */}
@@ -173,7 +173,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
               : 'border-transparent text-gray-600 hover:text-[#2271b1]'
           }`}
         >
-          <i className="fa fa-bullhorn mr-1.5"></i> বিজ্ঞাপন ব্যানার (Ads)
+          <i className="fa fa-bullhorn mr-1.5"></i> বিজ্ঞাপন ব্যানার
         </button>
 
         {/* Contact Tab */}
@@ -495,21 +495,63 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
         {/* 2. Ads Tab */}
         {activeSubTab === 'ads' && (
           <div className="space-y-6 max-w-3xl text-xs text-gray-700">
-            <div>
-              <label className="block font-semibold text-gray-900 mb-1">
-                হেডার বিজ্ঞাপন ব্যানার (Header Top Banner 728x90):
-              </label>
-              <div className="space-y-2">
-                <input
-                  type="url"
-                  value={formData.headerAdImage || ''}
-                  onChange={(e) => handleChange('headerAdImage', e.target.value)}
-                  placeholder="https://... অথবা ব্যানার ছবি আপলোড করুন"
-                  className="w-full text-sm border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#2271b1]"
-                />
+            <div className="bg-blue-50/70 border border-blue-200 rounded p-3 text-blue-900 leading-relaxed">
+              <p className="font-semibold mb-1 flex items-center gap-1.5 text-sm">
+                <i className="fa fa-info-circle text-blue-600"></i> বিজ্ঞাপন ব্যানার ব্যবস্থাপনা
+              </p>
+              <p className="text-xs text-blue-800">
+                বিজ্ঞাপন ব্যানার খালি থাকলে ওয়েবসাইটে ঝাপসা ওয়াটারমার্ক সহ <strong>‘বিজ্ঞাপন’</strong> লেখা প্রদর্শিত হবে। নির্দিষ্ট সাইজ অনুযায়ী ছবি আপলোড করলে বা লিংক বসালে স্বয়ংক্রিয়ভাবে আসল বিজ্ঞাপনটি দৃশ্যমান হবে।
+              </p>
+            </div>
+
+            {/* Header Ad Slot */}
+            <div className="bg-white p-4 border border-gray-200 rounded shadow-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-sm text-gray-900">হেডার বিজ্ঞাপন ব্যানার (Header Ad)</h4>
+                  <span className="text-[11px] text-gray-500 font-medium">প্রস্তাবিত সাইজ: ৭২৮ x ৯০ পিক্সেল</span>
+                </div>
+                {formData.headerAdImage && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleChange('headerAdImage', '');
+                      handleChange('headerAdUrl', '');
+                    }}
+                    className="text-red-600 hover:text-red-800 text-xs font-semibold flex items-center gap-1 hover:underline cursor-pointer"
+                  >
+                    <i className="fa fa-trash"></i> ব্যানার মুছুন
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">বিজ্ঞাপন ছবির লিংক / ফাইল:</label>
+                  <input
+                    type="url"
+                    value={formData.headerAdImage || ''}
+                    onChange={(e) => handleChange('headerAdImage', e.target.value)}
+                    placeholder="https://... অথবা আপলোড করুন"
+                    className="w-full text-xs border border-gray-300 rounded px-2.5 py-1.5 outline-none focus:border-[#2271b1]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">বিজ্ঞাপনে ক্লিক করলে যে লিংকে যাবে (URL):</label>
+                  <input
+                    type="url"
+                    value={formData.headerAdUrl || ''}
+                    onChange={(e) => handleChange('headerAdUrl', e.target.value)}
+                    placeholder="https://example.com"
+                    className="w-full text-xs border border-gray-300 rounded px-2.5 py-1.5 outline-none focus:border-[#2271b1]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
                 <label className="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-blue-50 hover:border-blue-300 border border-gray-200 px-3 py-1.5 rounded text-xs text-gray-700 cursor-pointer">
                   <i className={compressingField === 'headerAdImage' ? "fa fa-spinner fa-spin text-[#2271b1]" : "fa fa-upload text-[#2271b1]"}></i>
-                  <span>{compressingField === 'headerAdImage' ? 'প্রসেসিং হচ্ছে...' : 'হেডার ব্যানার আপলোড'}</span>
+                  <span>{compressingField === 'headerAdImage' ? 'প্রসেসিং হচ্ছে...' : 'ছবি আপলোড করুন (৭২৮x৯০)'}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -520,29 +562,69 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
                     }}
                   />
                 </label>
+                {formData.headerAdImage && (
+                  <span className="text-emerald-600 text-xs flex items-center gap-1 font-medium">
+                    <i className="fa fa-check-circle"></i> বিজ্ঞাপন সক্রিয়
+                  </span>
+                )}
               </div>
+
               {formData.headerAdImage && (
-                <div className="mt-2 border rounded p-1 bg-gray-50 max-w-lg">
-                  <img src={formData.headerAdImage} alt="Header Ad" className="w-full h-auto" />
+                <div className="mt-2 border rounded p-1.5 bg-gray-50 max-w-lg">
+                  <p className="text-[11px] text-gray-500 mb-1">প্রিভিউ:</p>
+                  <img src={formData.headerAdImage} alt="Header Ad Preview" className="w-full h-auto max-h-20 object-contain rounded" />
                 </div>
               )}
             </div>
 
-            <div>
-              <label className="block font-semibold text-gray-900 mb-1">
-                সাইডবার বিজ্ঞাপন ব্যানার (Sidebar Ad 300x250):
-              </label>
-              <div className="space-y-2">
-                <input
-                  type="url"
-                  value={formData.sidebarAdImage || ''}
-                  onChange={(e) => handleChange('sidebarAdImage', e.target.value)}
-                  placeholder="https://... অথবা ব্যানার ছবি আপলোড করুন"
-                  className="w-full text-sm border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#2271b1]"
-                />
+            {/* Sidebar Ad Slot */}
+            <div className="bg-white p-4 border border-gray-200 rounded shadow-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-sm text-gray-900">সাইডবার বিজ্ঞাপন ব্যানার (Sidebar Ad)</h4>
+                  <span className="text-[11px] text-gray-500 font-medium">প্রস্তাবিত সাইজ: ৩০০ x ২৫০ পিক্সেল</span>
+                </div>
+                {formData.sidebarAdImage && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleChange('sidebarAdImage', '');
+                      handleChange('sidebarAdUrl', '');
+                    }}
+                    className="text-red-600 hover:text-red-800 text-xs font-semibold flex items-center gap-1 hover:underline cursor-pointer"
+                  >
+                    <i className="fa fa-trash"></i> ব্যানার মুছুন
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">বিজ্ঞাপন ছবির লিংক / ফাইল:</label>
+                  <input
+                    type="url"
+                    value={formData.sidebarAdImage || ''}
+                    onChange={(e) => handleChange('sidebarAdImage', e.target.value)}
+                    placeholder="https://... অথবা আপলোড করুন"
+                    className="w-full text-xs border border-gray-300 rounded px-2.5 py-1.5 outline-none focus:border-[#2271b1]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">বিজ্ঞাপনে ক্লিক করলে যে লিংকে যাবে (URL):</label>
+                  <input
+                    type="url"
+                    value={formData.sidebarAdUrl || ''}
+                    onChange={(e) => handleChange('sidebarAdUrl', e.target.value)}
+                    placeholder="https://example.com"
+                    className="w-full text-xs border border-gray-300 rounded px-2.5 py-1.5 outline-none focus:border-[#2271b1]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
                 <label className="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-blue-50 hover:border-blue-300 border border-gray-200 px-3 py-1.5 rounded text-xs text-gray-700 cursor-pointer">
                   <i className={compressingField === 'sidebarAdImage' ? "fa fa-spinner fa-spin text-[#2271b1]" : "fa fa-upload text-[#2271b1]"}></i>
-                  <span>{compressingField === 'sidebarAdImage' ? 'প্রসেসিং হচ্ছে...' : 'সাইডবার ব্যানার আপলোড'}</span>
+                  <span>{compressingField === 'sidebarAdImage' ? 'প্রসেসিং হচ্ছে...' : 'ছবি আপলোড করুন (৩০০x২৫০)'}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -553,29 +635,69 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
                     }}
                   />
                 </label>
+                {formData.sidebarAdImage && (
+                  <span className="text-emerald-600 text-xs flex items-center gap-1 font-medium">
+                    <i className="fa fa-check-circle"></i> বিজ্ঞাপন সক্রিয়
+                  </span>
+                )}
               </div>
+
               {formData.sidebarAdImage && (
-                <div className="mt-2 border rounded p-1 bg-gray-50 max-w-[300px]">
-                  <img src={formData.sidebarAdImage} alt="Sidebar Ad" className="w-full h-auto" />
+                <div className="mt-2 border rounded p-1.5 bg-gray-50 max-w-[280px]">
+                  <p className="text-[11px] text-gray-500 mb-1">প্রিভিউ:</p>
+                  <img src={formData.sidebarAdImage} alt="Sidebar Ad Preview" className="w-full h-auto max-h-48 object-contain rounded" />
                 </div>
               )}
             </div>
 
-            <div>
-              <label className="block font-semibold text-gray-900 mb-1">
-                হোমপেজ বডি বিজ্ঞাপন (Middle Full Banner):
-              </label>
-              <div className="space-y-2">
-                <input
-                  type="url"
-                  value={formData.bodyAdImage || ''}
-                  onChange={(e) => handleChange('bodyAdImage', e.target.value)}
-                  placeholder="https://... অথবা ব্যানার ছবি আপলোড করুন"
-                  className="w-full text-sm border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#2271b1]"
-                />
+            {/* Body / Article Middle Ad Slot */}
+            <div className="bg-white p-4 border border-gray-200 rounded shadow-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-sm text-gray-900">হোমপেজ ও নিউজ বডি বিজ্ঞাপন (Body / Content Ad)</h4>
+                  <span className="text-[11px] text-gray-500 font-medium">প্রস্তাবিত সাইজ: ৭২৮ x ৯০ অথবা ৩৬০ x ৯০ পিক্সেল</span>
+                </div>
+                {formData.bodyAdImage && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleChange('bodyAdImage', '');
+                      handleChange('bodyAdUrl', '');
+                    }}
+                    className="text-red-600 hover:text-red-800 text-xs font-semibold flex items-center gap-1 hover:underline cursor-pointer"
+                  >
+                    <i className="fa fa-trash"></i> ব্যানার মুছুন
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">বিজ্ঞাপন ছবির লিংক / ফাইল:</label>
+                  <input
+                    type="url"
+                    value={formData.bodyAdImage || ''}
+                    onChange={(e) => handleChange('bodyAdImage', e.target.value)}
+                    placeholder="https://... অথবা আপলোড করুন"
+                    className="w-full text-xs border border-gray-300 rounded px-2.5 py-1.5 outline-none focus:border-[#2271b1]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">বিজ্ঞাপনে ক্লিক করলে যে লিংকে যাবে (URL):</label>
+                  <input
+                    type="url"
+                    value={formData.bodyAdUrl || ''}
+                    onChange={(e) => handleChange('bodyAdUrl', e.target.value)}
+                    placeholder="https://example.com"
+                    className="w-full text-xs border border-gray-300 rounded px-2.5 py-1.5 outline-none focus:border-[#2271b1]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
                 <label className="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-blue-50 hover:border-blue-300 border border-gray-200 px-3 py-1.5 rounded text-xs text-gray-700 cursor-pointer">
                   <i className={compressingField === 'bodyAdImage' ? "fa fa-spinner fa-spin text-[#2271b1]" : "fa fa-upload text-[#2271b1]"}></i>
-                  <span>{compressingField === 'bodyAdImage' ? 'প্রসেসিং হচ্ছে...' : 'বডি ব্যানার আপলোড'}</span>
+                  <span>{compressingField === 'bodyAdImage' ? 'প্রসেসিং হচ্ছে...' : 'ছবি আপলোড করুন (৭২৮x৯০)'}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -586,7 +708,19 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
                     }}
                   />
                 </label>
+                {formData.bodyAdImage && (
+                  <span className="text-emerald-600 text-xs flex items-center gap-1 font-medium">
+                    <i className="fa fa-check-circle"></i> বিজ্ঞাপন সক্রিয়
+                  </span>
+                )}
               </div>
+
+              {formData.bodyAdImage && (
+                <div className="mt-2 border rounded p-1.5 bg-gray-50 max-w-lg">
+                  <p className="text-[11px] text-gray-500 mb-1">প্রিভিউ:</p>
+                  <img src={formData.bodyAdImage} alt="Body Ad Preview" className="w-full h-auto max-h-20 object-contain rounded" />
+                </div>
+              )}
             </div>
 
             <div className="pt-3 border-t border-gray-200 flex justify-end">

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { NewsArticle } from '../types';
+import { NewsArticle, SiteSettings } from '../types';
 import { ImageWithFallback } from './ImageWithFallback';
+import { AdBanner } from './AdBanner';
 import {
   leadStory,
   sideLeadNews,
@@ -17,6 +18,7 @@ interface CategoryArchivePageProps {
   articles: NewsArticle[];
   onSelectArticle: (idOrTitle: string | number) => void;
   onClose: () => void;
+  siteSettings?: SiteSettings;
 }
 
 export const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
@@ -24,6 +26,7 @@ export const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
   articles,
   onSelectArticle,
   onClose,
+  siteSettings,
 }) => {
   const [activeTab, setActiveTab] = useState<'latest' | 'popular'>('latest');
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -381,18 +384,12 @@ export const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
           </div>
 
           <div className="add mt-4">
-            <a
-              href="https://themesbazar.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block bg-[#1F4565] text-white p-4 rounded text-center border border-blue-900 shadow-xs hover:opacity-95 transition-opacity"
-            >
-              <span className="text-[10px] bg-red-600 px-2 py-0.5 rounded font-bold uppercase">
-                বিজ্ঞাপন
-              </span>
-              <h5 className="font-bold text-sm mt-1.5">অনলাইন পত্রিকা থিম</h5>
-              <p className="text-xs text-blue-200 mt-0.5">ThemesBazar.Com</p>
-            </a>
+            <AdBanner
+              image={siteSettings?.sidebarAdImage}
+              url={siteSettings?.sidebarAdUrl}
+              sizeLabel="৩০০ x ২৫০"
+              heightClass="h-60"
+            />
           </div>
         </div>
       </div>
