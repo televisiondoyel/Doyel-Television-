@@ -45,12 +45,21 @@ export const Header: React.FC<HeaderProps> = ({ onSearch, siteSettings, onOpenAd
   }, [siteSettings?.siteLogo]);
 
   useEffect(() => {
-    // Generate Bengali formatted date
+    // Generate Bengali formatted date with natural time period (সকাল, দুপুর, বিকাল, সন্ধ্যা, রাত, ভোর)
     const banglaDays = ['রবিবার', 'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার'];
-    const banglaMonths = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'অগাস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
+    const banglaMonths = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
     const toBanglaNum = (num: number | string) => {
       const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
       return String(num).replace(/[0-9]/g, (d) => bn[parseInt(d, 10)]);
+    };
+
+    const getBanglaTimePeriod = (h: number) => {
+      if (h >= 4 && h < 6) return 'ভোর';
+      if (h >= 6 && h < 12) return 'সকাল';
+      if (h >= 12 && h < 15) return 'দুপুর';
+      if (h >= 15 && h < 18) return 'বিকাল';
+      if (h >= 18 && h < 20) return 'সন্ধ্যা';
+      return 'রাত';
     };
 
     const updateDate = () => {
@@ -60,13 +69,13 @@ export const Header: React.FC<HeaderProps> = ({ onSearch, siteSettings, onOpenAd
       const month = banglaMonths[now.getMonth()];
       const year = toBanglaNum(now.getFullYear());
       
-      let hours = now.getHours();
+      const rawHours = now.getHours();
+      const period = getBanglaTimePeriod(rawHours);
+      let hours12 = rawHours % 12 || 12;
       const minutes = toBanglaNum(String(now.getMinutes()).padStart(2, '0'));
-      const ampm = hours >= 12 ? 'অপরাহ্ন' : 'পূর্বাহ্ন';
-      hours = hours % 12 || 12;
-      const hoursBn = toBanglaNum(hours);
+      const hoursBn = toBanglaNum(hours12);
 
-      setBengaliDate(`${dayName}, ${day} ${month} ${year}, ${hoursBn}:${minutes} ${ampm}`);
+      setBengaliDate(`${dayName}, ${day} ${month} ${year}, ${hoursBn}:${minutes} ${period}`);
     };
 
     updateDate();
@@ -123,7 +132,7 @@ export const Header: React.FC<HeaderProps> = ({ onSearch, siteSettings, onOpenAd
         <div className="md:col-span-4 flex flex-col justify-center px-1">
           <div className="text-[13.5px] font-medium text-gray-700 mb-2 flex items-center justify-center gap-1.5 bg-gray-50 py-1 px-2.5 rounded border border-gray-200 text-center">
             <i className="fa fa-calendar text-[#004F8A]"></i>
-            <span>{bengaliDate || 'শুক্রবার, ২১ অগাস্ট ২০২৬, ৯:৫৮ পূর্বাহ্ন'}</span>
+            <span>{bengaliDate || 'শনিবার, ২২ আগস্ট ২০২৬, রাত ৯:৫৮'}</span>
           </div>
 
           <form onSubmit={handleSearchSubmit} className="flex items-center">

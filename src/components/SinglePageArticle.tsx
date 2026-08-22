@@ -1,23 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { NewsArticle, SiteSettings } from '../types';
 import { ImageWithFallback } from './ImageWithFallback';
 import { AdBanner } from './AdBanner';
-import {
-  leadStory,
-  sideLeadNews,
-  gridSectionTwoCards,
-  nationalNewsMain,
-  nationalNewsList,
-  internationalNews,
-  sportsList,
-  mediaNewsGrid,
-} from '../data/newsData';
 
 interface SinglePageArticleProps {
   article: NewsArticle;
   onClose: () => void;
   onSelectArticle: (idOrTitle: string | number) => void;
   siteSettings?: SiteSettings;
+  allArticles?: NewsArticle[];
 }
 
 interface CommentItem {
@@ -33,6 +24,7 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
   onClose,
   onSelectArticle,
   siteSettings,
+  allArticles = [],
 }) => {
   const [activeTab, setActiveTab] = useState<'latest' | 'popular'>('latest');
   const [comments, setComments] = useState<CommentItem[]>([
@@ -75,86 +67,28 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
     setTimeout(() => setCommentSubmitted(false), 4000);
   };
 
-  // 6 Related Articles for the bottom grid
-  const relatedArticles: NewsArticle[] = [
-    sideLeadNews[0] || leadStory,
-    sideLeadNews[1] || leadStory,
-    sideLeadNews[2] || leadStory,
-    sideLeadNews[3] || leadStory,
-    gridSectionTwoCards[0] || leadStory,
-    gridSectionTwoCards[1] || leadStory,
-  ];
+  // Related Articles for the bottom grid (matching category first or other available news)
+  const relatedArticles = useMemo(() => {
+    const others = allArticles.filter((a) => String(a.id) !== String(article.id));
+    const sameCat = others.filter((a) => a.category === article.category);
+    if (sameCat.length >= 3) {
+      return sameCat.slice(0, 6);
+    }
+    return others.slice(0, 6);
+  }, [allArticles, article]);
 
-  // Latest 10 tab items
-  const latestTabArticles = [
-    {
-      id: '1039',
-      title: 'রুদ্র মুহম্মদ শহিদুল্লাহর জন্মদিন আজ',
-      image: 'https://newssitedesign.com/professionalnews/wp-content/uploads/2017/11/rudro-20171016120759.jpg',
-      fallbackImage: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80',
-    },
-    {
-      id: '1036',
-      title: 'কবি শামসুর রাহমানের ৮৯তম জন্মদিন আজ',
-      image: 'https://newssitedesign.com/professionalnews/wp-content/uploads/2017/11/shamsur-rahman-20171023093303-600x337.jpg',
-      fallbackImage: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=600&auto=format&fit=crop&q=80',
-    },
-    {
-      id: '1033',
-      title: 'বিল নিয়ে খেদ হাসপাতালে ভর্তি তসলিমার',
-      image: 'https://newssitedesign.com/professionalnews/wp-content/uploads/2017/11/taslima-20171018180245-600x337.jpg',
-      fallbackImage: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&auto=format&fit=crop&q=80',
-    },
-    {
-      id: '1030',
-      title: '১৬ নভেম্বর ঢাকা লিট ফেস্ট শুরু',
-      image: 'https://newssitedesign.com/professionalnews/wp-content/uploads/2017/11/lit-fest-logo-20171104143720-600x337.jpg',
-      fallbackImage: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&auto=format&fit=crop&q=80',
-    },
-    {
-      id: '1027',
-      title: 'প্রলয়',
-      image: 'https://newssitedesign.com/professionalnews/wp-content/uploads/2017/11/proloy-20171106175843-600x337.jpg',
-      fallbackImage: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop&q=80',
-    },
-    {
-      id: '1024',
-      title: '৭ মার্চের ভাষণের ওপর বইয়ের মোড়ক উন্মোচন',
-      image: 'https://newssitedesign.com/professionalnews/wp-content/uploads/2017/11/polok-20171113161446-600x337.jpg',
-      fallbackImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80',
-    },
-    {
-      id: '1021',
-      title: 'আরব সভ্যতা টিকবে না : আদোনিস',
-      image: 'https://newssitedesign.com/professionalnews/wp-content/uploads/2017/11/adonis-20171116173809-600x337.jpg',
-      fallbackImage: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=600&auto=format&fit=crop&q=80',
-    },
-    {
-      id: '1016',
-      title: 'কবিতার খোঁজে সম্মাননা পেলেন ১০ তরুণ কবি',
-      image: 'https://newssitedesign.com/professionalnews/wp-content/uploads/2017/11/kobi-20171118162239-600x337.jpg',
-      fallbackImage: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=600&auto=format&fit=crop&q=80',
-    },
-    {
-      id: '1013',
-      title: 'জীবনে প্রথম সামনাসামনি আবৃত্তি শোনা',
-      image: 'https://newssitedesign.com/professionalnews/wp-content/uploads/2017/11/ajadul-20171119180726-600x337.jpg',
-      fallbackImage: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=600&auto=format&fit=crop&q=80',
-    },
-    {
-      id: '1010',
-      title: 'সুফিয়া কামালের মৃত্যুবার্ষিকী আজ',
-      image: 'https://newssitedesign.com/professionalnews/wp-content/uploads/2017/11/sufia-20171120093305-600x337.jpg',
-      fallbackImage: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&auto=format&fit=crop&q=80',
-    },
-  ];
+  // Latest tab items from real dynamic articles
+  const latestTabArticles = useMemo(() => {
+    return allArticles.filter((a) => String(a.id) !== String(article.id)).slice(0, 8);
+  }, [allArticles, article]);
 
-  // Popular tab items
-  const popularTabArticles = [
-    leadStory,
-    ...sideLeadNews,
-    ...gridSectionTwoCards.slice(0, 3),
-  ];
+  // Popular tab items from real dynamic articles
+  const popularTabArticles = useMemo(() => {
+    return [...allArticles]
+      .filter((a) => String(a.id) !== String(article.id))
+      .sort((a, b) => (Number(b.views) || 0) - (Number(a.views) || 0))
+      .slice(0, 8);
+  }, [allArticles, article]);
 
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
   const shareTitle = article.title;
@@ -501,40 +435,42 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
             )}
           </div>
 
-          {/* Related News Section "এ জাতীয় আরো খবর.." */}
-          <div className="related-news-section my-6">
-            <div className="sgl-cat-tittle bg-[#F7F7F7] p-2.5 text-[#222] font-bold text-lg border-l-4 border-[#F90202] mb-4">
-              এ জাতীয় আরো খবর..
-            </div>
+          {/* Related News Section "এ জাতীয় আরো খবর.." (only if related news exists) */}
+          {relatedArticles.length > 0 && (
+            <div className="related-news-section my-6">
+              <div className="sgl-cat-tittle bg-[#F7F7F7] p-2.5 text-[#222] font-bold text-lg border-l-4 border-[#F90202] mb-4">
+                এ জাতীয় আরো খবর..
+              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {relatedArticles.map((relItem) => (
-                <div
-                  key={relItem.id}
-                  onClick={() => onSelectArticle(relItem.id)}
-                  className="Name-again box-shadow bg-white border border-gray-200 p-2 rounded shadow-2xs hover:shadow-md transition-shadow cursor-pointer group flex flex-col justify-between"
-                >
-                  <div className="image-again">
-                    <div className="aspect-video w-full rounded overflow-hidden bg-gray-100 mb-2">
-                      <ImageWithFallback
-                        src={relItem.image}
-                        fallbackSrc={relItem.fallbackImage}
-                        alt={relItem.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {relatedArticles.map((relItem) => (
+                  <div
+                    key={relItem.id}
+                    onClick={() => onSelectArticle(relItem.id)}
+                    className="Name-again box-shadow bg-white border border-gray-200 p-2 rounded shadow-2xs hover:shadow-md transition-shadow cursor-pointer group flex flex-col justify-between"
+                  >
+                    <div className="image-again">
+                      <div className="aspect-video w-full rounded overflow-hidden bg-gray-100 mb-2">
+                        <ImageWithFallback
+                          src={relItem.image}
+                          fallbackSrc={relItem.fallbackImage}
+                          alt={relItem.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      </div>
+                      <h4 className="sgl-hadding font-bold text-sm sm:text-[14.5px] text-[#222] group-hover:text-[#9A1515] transition-colors leading-snug line-clamp-2">
+                        {relItem.title}
+                      </h4>
                     </div>
-                    <h4 className="sgl-hadding font-bold text-sm sm:text-[14.5px] text-[#222] group-hover:text-[#9A1515] transition-colors leading-snug line-clamp-2">
-                      {relItem.title}
-                    </h4>
+                    <div className="mt-2 pt-1 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
+                      <span className="text-[#004F8A] font-semibold">{relItem.category}</span>
+                      <span>{relItem.date}</span>
+                    </div>
                   </div>
-                  <div className="mt-2 pt-1 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
-                    <span className="text-[#004F8A] font-semibold">{relItem.category}</span>
-                    <span>{relItem.date}</span>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Bottom Advertisement Banner */}
           <div className="add my-6">
