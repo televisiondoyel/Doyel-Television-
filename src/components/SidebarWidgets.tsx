@@ -2,20 +2,26 @@ import React, { useState } from 'react';
 import { latestNewsTab, popularNewsTab, politicsFeatured, politicsList } from '../data/newsData';
 import { ImageWithFallback } from './ImageWithFallback';
 import { CategoryHeader } from './CategoryHeader';
+import { SiteSettings } from '../types';
 
 interface SidebarWidgetsProps {
   onSelectArticle: (idOrTitle: string) => void;
   onSelectCategory: (cat: string) => void;
   onFilterByDate: (dateStr: string) => void;
+  siteSettings?: SiteSettings;
 }
 
 export const SidebarWidgets: React.FC<SidebarWidgetsProps> = ({
   onSelectArticle,
   onSelectCategory,
   onFilterByDate,
+  siteSettings,
 }) => {
   const [activeTab, setActiveTab] = useState<'latest' | 'popular'>('latest');
   const [archiveDate, setArchiveDate] = useState('2026-08-21');
+
+  const fbUrl = siteSettings?.facebookUrl || 'https://www.facebook.com/share/19cpbxC35r/';
+  const siteName = siteSettings?.siteName || 'Doyel Television';
 
   const handleArchiveSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,14 +40,14 @@ export const SidebarWidgets: React.FC<SidebarWidgetsProps> = ({
             <div className="w-11 h-11 bg-[#1877F2] text-white font-bold text-lg rounded-full flex items-center justify-center">
               <i className="fa fa-facebook"></i>
             </div>
-            <div>
-              <h5 className="font-bold text-sm text-gray-900 leading-tight">ThemesBazar</h5>
-              <p className="text-xs text-gray-500">১.২ লাখ লাইক • সংবাদ ও মিডিয়া ওয়েবসাইট</p>
+            <div className="min-w-0 flex-1">
+              <h5 className="font-bold text-sm text-gray-900 leading-tight truncate">{siteName}</h5>
+              <p className="text-xs text-gray-500">২.৪ হাজার লাইক • সংবাদ ও মিডিয়া ওয়েবসাইট</p>
             </div>
           </div>
           <div className="mt-3 flex gap-2">
             <a
-              href="https://www.facebook.com/themesbazar"
+              href={fbUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 bg-[#1877F2] text-white text-xs font-semibold py-1.5 px-3 rounded text-center hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
@@ -49,12 +55,12 @@ export const SidebarWidgets: React.FC<SidebarWidgetsProps> = ({
               <i className="fa fa-thumbs-up"></i> পেজ লাইক করুন
             </a>
             <a
-              href="https://www.facebook.com/themesbazar"
+              href={fbUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-gray-200 text-gray-800 text-xs font-semibold py-1.5 px-3 rounded hover:bg-gray-300 transition-colors flex items-center justify-center"
             >
-              <i className="fa fa-share"></i> শেয়ার
+              <i className="fa fa-share"></i> পেজ দেখুন
             </a>
           </div>
         </div>

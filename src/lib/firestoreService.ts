@@ -48,7 +48,7 @@ export const defaultSettings: SiteSettings = {
   contactAddress: '৫৮/১ পুরানা পল্টন, ঢাকা-১০০০, বাংলাদেশ',
   contactPhone: '+৮৮০ ২ ৯৫৫xxxx, +৮৮০ ১৭xxxxxxxx',
   contactEmail: 'editor@doyeltelevision.com',
-  facebookUrl: 'https://facebook.com',
+  facebookUrl: 'https://www.facebook.com/share/19cpbxC35r/',
   twitterUrl: 'https://twitter.com',
   youtubeUrl: 'https://youtube.com',
   instagramUrl: 'https://instagram.com',

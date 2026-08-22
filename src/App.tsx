@@ -658,6 +658,7 @@ export default function App() {
                       onSelectArticle={handleOpenArticle}
                       onSelectCategory={handleCategorySelect}
                       onFilterByDate={handleDateFilter}
+                      siteSettings={siteSettings}
                     />
                   </div>
                 </div>
