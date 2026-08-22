@@ -75,6 +75,13 @@ export default function App() {
   const [videos, setVideos] = useState<VideoSlide[]>([]);
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
 
+  // Track if Firestore subscriptions have loaded
+  const [hasLoadedFamily, setHasLoadedFamily] = useState<boolean>(false);
+  const [hasLoadedPhotos, setHasLoadedPhotos] = useState<boolean>(false);
+  const [hasLoadedVideos, setHasLoadedVideos] = useState<boolean>(false);
+  const [hasLoadedTicker, setHasLoadedTicker] = useState<boolean>(false);
+  const [hasLoadedCategories, setHasLoadedCategories] = useState<boolean>(false);
+
   // ----------------------------------------------------
   // Dynamic URL Router & Browser History (xyz.com/রাজনীতি etc.)
   // ----------------------------------------------------
@@ -226,22 +233,27 @@ export default function App() {
 
     const unsubCategories = subscribeToCategories((data) => {
       setCategories(data || []);
+      setHasLoadedCategories(true);
     });
 
     const unsubTicker = subscribeToTicker((data) => {
       setTickerItems(data || []);
+      setHasLoadedTicker(true);
     });
 
     const unsubPhotos = subscribeToPhotos((data) => {
       setPhotos(data || []);
+      setHasLoadedPhotos(true);
     });
 
     const unsubVideos = subscribeToVideos((data) => {
       setVideos(data || []);
+      setHasLoadedVideos(true);
     });
 
     const unsubFamily = subscribeToFamilyMembers((data) => {
       setFamilyMembers(data || []);
+      setHasLoadedFamily(true);
     });
 
     return () => {
@@ -432,12 +444,12 @@ export default function App() {
     return (
       <AdminDashboard
         articles={allArticles}
-        categories={categories}
-        tickerItems={tickerItems.length > 0 ? tickerItems : defaultTicker}
-        photos={photos.length > 0 ? photos : defaultPhotos}
-        videos={videos.length > 0 ? videos : defaultVideos}
+        categories={hasLoadedCategories ? categories : defaultCategories}
+        tickerItems={hasLoadedTicker ? tickerItems : (tickerItems.length > 0 ? tickerItems : defaultTicker)}
+        photos={hasLoadedPhotos ? photos : (photos.length > 0 ? photos : defaultPhotos)}
+        videos={hasLoadedVideos ? videos : (videos.length > 0 ? videos : defaultVideos)}
         siteSettings={siteSettings}
-        familyMembers={familyMembers.length > 0 ? familyMembers : defaultFamilyMembers}
+        familyMembers={hasLoadedFamily ? familyMembers : (familyMembers.length > 0 ? familyMembers : defaultFamilyMembers)}
         onExitAdmin={() => handleExitAdmin(true)}
         onLogout={() => {
           try {
@@ -498,7 +510,7 @@ export default function App() {
           ) : currentFilterCategory === 'আমাদের পরিবার' ? (
             /* Our Family / Editorial Board View */
             <OurFamilyPage
-              members={familyMembers.length > 0 ? familyMembers : defaultFamilyMembers}
+              members={hasLoadedFamily ? familyMembers : (familyMembers.length > 0 ? familyMembers : defaultFamilyMembers)}
               onHome={() => handleCategorySelect('প্রচ্ছদ')}
             />
           ) : (

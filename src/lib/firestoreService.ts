@@ -195,85 +195,135 @@ export function getAllInitialArticles(): NewsArticle[] {
   return Array.from(map.values());
 }
 
-// Check and seed initial data into Firestore if empty
+// Ensure each collection is initialized in Firestore independently
 export async function seedFirestoreIfEmpty(): Promise<boolean> {
   try {
+    // 1. Site Settings
     const settingsDoc = doc(db, 'site_settings', 'main');
     const settingsSnap = await getDoc(settingsDoc);
-    
-    if (settingsSnap.exists()) {
-      return false; // Database is already initialized
+    if (!settingsSnap.exists()) {
+      await setDoc(settingsDoc, defaultSettings);
     }
 
-    const articlesCol = collection(db, 'articles');
-    const snap = await getDocs(articlesCol);
-    
-    if (!snap.empty) {
-      return false; // Already has data
+    // 2. Family Members (আমাদের পরিবার)
+    const familyInitDoc = doc(db, 'system', 'family_initialized');
+    const familyInitSnap = await getDoc(familyInitDoc);
+    if (!familyInitSnap.exists()) {
+      const familySnap = await getDocs(collection(db, 'family_members'));
+      if (familySnap.empty) {
+        console.log('Seeding initial family members into Firestore...');
+        const batch = writeBatch(db);
+        defaultFamilyMembers.forEach((member) => {
+          const memberDoc = doc(db, 'family_members', member.id);
+          batch.set(memberDoc, member);
+        });
+        batch.set(familyInitDoc, { initializedAt: new Date().toISOString() });
+        await batch.commit();
+      } else {
+        await setDoc(familyInitDoc, { initializedAt: new Date().toISOString() });
+      }
     }
 
-    console.log('Seeding initial news portal data to Firestore...');
-    const batch = writeBatch(db);
+    // 3. Categories
+    const catInitDoc = doc(db, 'system', 'categories_initialized');
+    const catInitSnap = await getDoc(catInitDoc);
+    if (!catInitSnap.exists()) {
+      const catSnap = await getDocs(collection(db, 'categories'));
+      if (catSnap.empty) {
+        console.log('Seeding initial categories into Firestore...');
+        const batch = writeBatch(db);
+        defaultCategories.forEach((cat) => {
+          const catDoc = doc(db, 'categories', cat.id);
+          batch.set(catDoc, cat);
+        });
+        batch.set(catInitDoc, { initializedAt: new Date().toISOString() });
+        await batch.commit();
+      } else {
+        await setDoc(catInitDoc, { initializedAt: new Date().toISOString() });
+      }
+    }
 
-    // 1. Seed Site Settings
-    batch.set(settingsDoc, defaultSettings);
+    // 4. Ticker
+    const tickInitDoc = doc(db, 'system', 'ticker_initialized');
+    const tickInitSnap = await getDoc(tickInitDoc);
+    if (!tickInitSnap.exists()) {
+      const tickSnap = await getDocs(collection(db, 'ticker'));
+      if (tickSnap.empty) {
+        const batch = writeBatch(db);
+        tickerNews.forEach((tick) => {
+          const tickDoc = doc(db, 'ticker', String(tick.id));
+          batch.set(tickDoc, {
+            id: String(tick.id),
+            title: tick.title,
+            articleId: String(tick.id)
+          });
+        });
+        batch.set(tickInitDoc, { initializedAt: new Date().toISOString() });
+        await batch.commit();
+      } else {
+        await setDoc(tickInitDoc, { initializedAt: new Date().toISOString() });
+      }
+    }
 
-    // Marker doc
-    const markerDoc = doc(db, 'system', 'initialized');
-    batch.set(markerDoc, { initializedAt: new Date().toISOString() });
+    // 5. Photos
+    const photosInitDoc = doc(db, 'system', 'photos_initialized');
+    const photosInitSnap = await getDoc(photosInitDoc);
+    if (!photosInitSnap.exists()) {
+      const photosSnap = await getDocs(collection(db, 'photos'));
+      if (photosSnap.empty) {
+        const batch = writeBatch(db);
+        photoGalleryData.forEach((p) => {
+          const pDoc = doc(db, 'photos', String(p.id));
+          batch.set(pDoc, { ...p, id: String(p.id) });
+        });
+        batch.set(photosInitDoc, { initializedAt: new Date().toISOString() });
+        await batch.commit();
+      } else {
+        await setDoc(photosInitDoc, { initializedAt: new Date().toISOString() });
+      }
+    }
 
-    // 2. Seed Categories
-    defaultCategories.forEach((cat) => {
-      const catDoc = doc(db, 'categories', cat.id);
-      batch.set(catDoc, cat);
-    });
+    // 6. Videos
+    const videosInitDoc = doc(db, 'system', 'videos_initialized');
+    const videosInitSnap = await getDoc(videosInitDoc);
+    if (!videosInitSnap.exists()) {
+      const videosSnap = await getDocs(collection(db, 'videos'));
+      if (videosSnap.empty) {
+        const batch = writeBatch(db);
+        videoGalleryData.forEach((v) => {
+          const vDoc = doc(db, 'videos', String(v.id));
+          batch.set(vDoc, { ...v, id: String(v.id) });
+        });
+        batch.set(videosInitDoc, { initializedAt: new Date().toISOString() });
+        await batch.commit();
+      } else {
+        await setDoc(videosInitDoc, { initializedAt: new Date().toISOString() });
+      }
+    }
 
-    // 3. Seed Ticker items
-    tickerNews.forEach((tick) => {
-      const tickDoc = doc(db, 'ticker', String(tick.id));
-      batch.set(tickDoc, {
-        id: String(tick.id),
-        title: tick.title,
-        articleId: String(tick.id)
-      });
-    });
+    // 7. Articles
+    const articlesInitDoc = doc(db, 'system', 'articles_initialized');
+    const articlesInitSnap = await getDoc(articlesInitDoc);
+    if (!articlesInitSnap.exists()) {
+      const articlesSnap = await getDocs(collection(db, 'articles'));
+      if (articlesSnap.empty) {
+        console.log('Seeding initial news portal articles to Firestore...');
+        const initialArticles = getAllInitialArticles();
+        const batch = writeBatch(db);
+        initialArticles.slice(0, 430).forEach((art) => {
+          const artDoc = doc(db, 'articles', art.id);
+          batch.set(artDoc, art);
+        });
+        batch.set(articlesInitDoc, { initializedAt: new Date().toISOString() });
+        await batch.commit();
+      } else {
+        await setDoc(articlesInitDoc, { initializedAt: new Date().toISOString() });
+      }
+    }
 
-    // 4. Seed Photos
-    photoGalleryData.forEach((p) => {
-      const pDoc = doc(db, 'photos', String(p.id));
-      batch.set(pDoc, {
-        ...p,
-        id: String(p.id)
-      });
-    });
-
-    // 5. Seed Videos
-    videoGalleryData.forEach((v) => {
-      const vDoc = doc(db, 'videos', String(v.id));
-      batch.set(vDoc, {
-        ...v,
-        id: String(v.id)
-      });
-    });
-
-    // 6. Seed Family Members (আমাদের পরিবার)
-    defaultFamilyMembers.forEach((member) => {
-      const memberDoc = doc(db, 'family_members', member.id);
-      batch.set(memberDoc, member);
-    });
-
-    // 7. Seed Articles (batch limit is 500)
-    const initialArticles = getAllInitialArticles();
-    initialArticles.slice(0, 430).forEach((art) => {
-      const artDoc = doc(db, 'articles', art.id);
-      batch.set(artDoc, art);
-    });
-
-    await batch.commit();
-    console.log('Initial seeding completed successfully!');
     return true;
   } catch (err) {
-    console.error('Error seeding Firestore:', err);
+    console.error('Error in seedFirestoreIfEmpty:', err);
     return false;
   }
 }

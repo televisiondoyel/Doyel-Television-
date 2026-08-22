@@ -272,8 +272,15 @@ export const FamilyManager: React.FC<FamilyManagerProps> = ({
             <span className="text-xs text-gray-500 font-normal">রিয়েল-টাইম ক্লাউড সিঙ্ক</span>
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {members.map((member) => (
+          {members.length === 0 ? (
+            <div className="text-center py-12 text-gray-500 bg-gray-50 rounded border border-dashed border-gray-300">
+              <i className="fa fa-users text-4xl text-gray-300 mb-2 block"></i>
+              <p className="font-semibold text-sm">বর্তমানে কোনো সদস্যের তথ্য তালিকায় নেই</p>
+              <p className="text-xs text-gray-400 mt-1">বামপাশের ফর্ম পূরণ করে নতুন সদস্য যোগ করতে পারেন</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {members.map((member) => (
               <div
                 key={member.id}
                 className={`border rounded p-3 text-center transition-all bg-gray-50 relative group ${
@@ -317,6 +324,7 @@ export const FamilyManager: React.FC<FamilyManagerProps> = ({
               </div>
             ))}
           </div>
+          )}
         </div>
       </div>
 

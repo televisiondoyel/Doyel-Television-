@@ -33,9 +33,14 @@ export const OurFamilyPage: React.FC<OurFamilyPageProps> = ({
 
       {/* Main Archive Section with 4 Columns per Row */}
       <section className="archive-section">
-        {/* news option */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
-          {members.map((member, index) => {
+        {members.length === 0 ? (
+          <div className="text-center py-16 bg-white rounded border border-gray-200">
+            <i className="fa fa-users text-4xl text-gray-300 mb-3 block"></i>
+            <p className="text-gray-500 font-medium">বর্তমানে কোনো সদস্যের তথ্য অন্তর্ভুক্ত নেই।</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
+            {members.map((member, index) => {
             // Determine display text format (Name :: Designation or separate)
             const hasCombinedTitle = member.name.includes('::');
             const displayName = hasCombinedTitle
@@ -83,6 +88,7 @@ export const OurFamilyPage: React.FC<OurFamilyPageProps> = ({
             );
           })}
         </div>
+        )}
       </section>
 
       {/* Member Details Modal Popup */}
