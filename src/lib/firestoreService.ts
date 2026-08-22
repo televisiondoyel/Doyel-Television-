@@ -42,7 +42,7 @@ import {
 export const defaultSettings: SiteSettings = {
   siteTitle: 'Doyel Television - সত্যের সন্ধানে নির্ভীক',
   siteTagline: 'স্বাধীন ও নিরপেক্ষ বাংলা অনলাইন নিউজ পোর্টাল',
-  siteLogo: 'https://newssitedesign.com/professionalnews/wp-content/uploads/2017/11/logo.png',
+  siteLogo: 'https://i.postimg.cc/y6nK7ZK6/20260818-233206.png',
   editorName: 'সম্পাদক ও প্রকাশক : এম. এ. রহমান',
   publisherName: 'দোয়েল টেলিভিশন লিমিটেড',
   contactAddress: '৫৮/১ পুরানা পল্টন, ঢাকা-১০০০, বাংলাদেশ',
@@ -198,6 +198,13 @@ export function getAllInitialArticles(): NewsArticle[] {
 // Check and seed initial data into Firestore if empty
 export async function seedFirestoreIfEmpty(): Promise<boolean> {
   try {
+    const settingsDoc = doc(db, 'site_settings', 'main');
+    const settingsSnap = await getDoc(settingsDoc);
+    
+    if (settingsSnap.exists()) {
+      return false; // Database is already initialized
+    }
+
     const articlesCol = collection(db, 'articles');
     const snap = await getDocs(articlesCol);
     
@@ -209,8 +216,11 @@ export async function seedFirestoreIfEmpty(): Promise<boolean> {
     const batch = writeBatch(db);
 
     // 1. Seed Site Settings
-    const settingsDoc = doc(db, 'site_settings', 'main');
     batch.set(settingsDoc, defaultSettings);
+
+    // Marker doc
+    const markerDoc = doc(db, 'system', 'initialized');
+    batch.set(markerDoc, { initializedAt: new Date().toISOString() });
 
     // 2. Seed Categories
     defaultCategories.forEach((cat) => {

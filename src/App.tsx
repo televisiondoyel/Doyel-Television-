@@ -255,6 +255,23 @@ export default function App() {
     };
   }, []);
 
+  // Dynamically synchronize favicon with site logo
+  useEffect(() => {
+    if (siteSettings?.siteLogo) {
+      const faviconLinks = document.querySelectorAll<HTMLLinkElement>("link[rel*='icon']");
+      if (faviconLinks.length > 0) {
+        faviconLinks.forEach((link) => {
+          link.href = siteSettings.siteLogo!;
+        });
+      } else {
+        const newLink = document.createElement('link');
+        newLink.rel = 'icon';
+        newLink.href = siteSettings.siteLogo;
+        document.head.appendChild(newLink);
+      }
+    }
+  }, [siteSettings?.siteLogo]);
+
   // Compute all articles (combining dynamic firestore articles or fallback defaults)
   const allArticles = useMemo(() => {
     if (articles.length > 0) {

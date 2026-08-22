@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FamilyMember } from '../../types';
 import { compressImage } from '../../lib/imageCompressor';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface FamilyManagerProps {
   members: FamilyMember[];
@@ -23,6 +24,8 @@ export const FamilyManager: React.FC<FamilyManagerProps> = ({
   const [order, setOrder] = useState<number>(0);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [memberToDelete, setMemberToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const defaultPlaceholder =
     'https://newssitedesign.com/professionalnews/wp-content/uploads/2018/01/Blank-Image-1.png';
@@ -78,9 +81,16 @@ export const FamilyManager: React.FC<FamilyManagerProps> = ({
     }
   };
 
-  const handleDelete = async (id: string, memberName: string) => {
-    if (window.confirm(`আপনি কি "${memberName}" কে তালিকা থেকে মুছে ফেলতে চান?`)) {
-      await onDeleteMember(id);
+  const confirmDelete = async () => {
+    if (!memberToDelete) return;
+    setIsDeleting(true);
+    try {
+      await onDeleteMember(memberToDelete.id);
+      setMemberToDelete(null);
+    } catch (err) {
+      console.error('Error deleting member:', err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -298,7 +308,7 @@ export const FamilyManager: React.FC<FamilyManagerProps> = ({
                   <span className="text-gray-300">|</span>
                   <button
                     type="button"
-                    onClick={() => handleDelete(member.id, member.name)}
+                    onClick={() => setMemberToDelete({ id: member.id, name: member.name })}
                     className="text-red-600 hover:text-red-800 font-semibold cursor-pointer flex items-center gap-1"
                   >
                     <i className="fa fa-trash"></i> মুছুন
@@ -309,6 +319,17 @@ export const FamilyManager: React.FC<FamilyManagerProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Family Member Delete Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!memberToDelete}
+        title="সদস্য মুছে ফেলার নিশ্চয়তা"
+        itemName={memberToDelete?.name}
+        description="আপনি কি নিশ্চিত যে সম্পাদকীয় পরিষদ/পরিবার থেকে এই সদস্যকে মুছে ফেলতে চান?"
+        isDeleting={isDeleting}
+        onConfirm={confirmDelete}
+        onClose={() => setMemberToDelete(null)}
+      />
     </div>
   );
 };

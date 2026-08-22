@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CategoryItem, NewsArticle } from '../../types';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface CategoryManagerProps {
   categories: CategoryItem[];
@@ -18,6 +19,8 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({
   const [slug, setSlug] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Generate slug automatically from name
   const handleNameChange = (val: string) => {
@@ -69,9 +72,16 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({
     setSlug('');
   };
 
-  const handleDelete = async (id: string, catName: string) => {
-    if (window.confirm(`আপনি কি "${catName}" ক্যাটাগরিটি মুছে ফেলতে চান?`)) {
-      await onDeleteCategory(id);
+  const confirmDelete = async () => {
+    if (!categoryToDelete) return;
+    setIsDeleting(true);
+    try {
+      await onDeleteCategory(categoryToDelete.id);
+      setCategoryToDelete(null);
+    } catch (err) {
+      console.error('Error deleting category:', err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -177,14 +187,14 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(cat)}
-                          className="text-[#2271b1] hover:underline text-xs"
+                          className="text-[#2271b1] hover:underline text-xs cursor-pointer"
                         >
                           এডিট
                         </button>
                         <span>|</span>
                         <button
-                          onClick={() => handleDelete(cat.id, cat.name)}
-                          className="text-[#d63638] hover:underline text-xs"
+                          onClick={() => setCategoryToDelete({ id: cat.id, name: cat.name })}
+                          className="text-[#d63638] hover:underline text-xs cursor-pointer"
                         >
                           ডিলিট
                         </button>
@@ -197,6 +207,17 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({
           </table>
         </div>
       </div>
+
+      {/* Category Delete Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!categoryToDelete}
+        title="ক্যাটাগরি মুছে ফেলার নিশ্চয়তা"
+        itemName={categoryToDelete?.name}
+        description="আপনি কি নিশ্চিত যে এই ক্যাটাগরিটি মুছে ফেলতে চান? এটি মেনু ও সাইটের তালিকা থেকে বাদ পড়বে।"
+        isDeleting={isDeleting}
+        onConfirm={confirmDelete}
+        onClose={() => setCategoryToDelete(null)}
+      />
     </div>
   );
 };

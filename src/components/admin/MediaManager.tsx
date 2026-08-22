@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PhotoSlide, VideoSlide } from '../../types';
 import { compressImage } from '../../lib/imageCompressor';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface MediaManagerProps {
   type: 'photos' | 'videos';
@@ -31,6 +32,8 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
   const [youtubeInput, setYoutubeInput] = useState('');
 
   const [saving, setSaving] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; title: string; type: 'photo' | 'video' } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Helper to extract YouTube video ID
   const extractVideoId = (input: string) => {
@@ -246,11 +249,9 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
                     <div className="mt-3 pt-2 border-t flex justify-end">
                       <button
                         onClick={() => {
-                          if (window.confirm('এই ছবিটি মুছে ফেলতে চান?')) {
-                            onDeletePhoto(p.id);
-                          }
+                          setItemToDelete({ id: p.id, title: p.title, type: 'photo' });
                         }}
-                        className="text-xs text-[#d63638] hover:underline"
+                        className="text-xs text-[#d63638] hover:underline cursor-pointer"
                       >
                         <i className="fa fa-trash mr-1"></i> ডিলিট
                       </button>
@@ -280,11 +281,9 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
                     <div className="mt-3 pt-2 border-t flex justify-end">
                       <button
                         onClick={() => {
-                          if (window.confirm('এই ভিডিওটি মুছে ফেলতে চান?')) {
-                            onDeleteVideo(v.id);
-                          }
+                          setItemToDelete({ id: v.id, title: v.title, type: 'video' });
                         }}
-                        className="text-xs text-[#d63638] hover:underline"
+                        className="text-xs text-[#d63638] hover:underline cursor-pointer"
                       >
                         <i className="fa fa-trash mr-1"></i> ডিলিট
                       </button>
@@ -296,6 +295,32 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Media Delete Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!itemToDelete}
+        title={itemToDelete?.type === 'photo' ? 'ছবি মুছে ফেলার নিশ্চয়তা' : 'ভিডিও মুছে ফেলার নিশ্চয়তা'}
+        itemName={itemToDelete?.title}
+        description={itemToDelete?.type === 'photo' ? 'আপনি কি নিশ্চিত যে ফটো গ্যালারি থেকে এই ছবিটি স্থায়ীভাবে মুছে ফেলতে চান?' : 'আপনি কি নিশ্চিত যে ভিডিও গ্যালারি থেকে এই ভিডিওটি স্থায়ীভাবে মুছে ফেলতে চান?'}
+        isDeleting={isDeleting}
+        onConfirm={async () => {
+          if (!itemToDelete) return;
+          setIsDeleting(true);
+          try {
+            if (itemToDelete.type === 'photo') {
+              await onDeletePhoto(itemToDelete.id);
+            } else {
+              await onDeleteVideo(itemToDelete.id);
+            }
+            setItemToDelete(null);
+          } catch (err) {
+            console.error('Error deleting media:', err);
+          } finally {
+            setIsDeleting(false);
+          }
+        }}
+        onClose={() => setItemToDelete(null)}
+      />
     </div>
   );
 };

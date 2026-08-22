@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TickerItem } from '../../types';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface TickerManagerProps {
   tickerItems: TickerItem[];
@@ -16,6 +17,8 @@ export const TickerManager: React.FC<TickerManagerProps> = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [saving, setSaving] = useState(false);
+  const [tickerToDelete, setTickerToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,9 +50,16 @@ export const TickerManager: React.FC<TickerManagerProps> = ({
     }
   };
 
-  const handleDelete = async (id: string, title: string) => {
-    if (window.confirm(`আপনি কি "${title}" শিরোনামটি মুছে ফেলতে চান?`)) {
-      await onDeleteTickerItem(id);
+  const confirmDelete = async () => {
+    if (!tickerToDelete) return;
+    setIsDeleting(true);
+    try {
+      await onDeleteTickerItem(tickerToDelete.id);
+      setTickerToDelete(null);
+    } catch (err) {
+      console.error('Error deleting ticker item:', err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -157,8 +167,8 @@ export const TickerManager: React.FC<TickerManagerProps> = ({
                       <i className="fa fa-pencil"></i>
                     </button>
                     <button
-                      onClick={() => handleDelete(item.id, item.title)}
-                      className="p-1.5 text-[#d63638] hover:bg-red-50 rounded text-xs"
+                      onClick={() => setTickerToDelete({ id: item.id, title: item.title })}
+                      className="p-1.5 text-[#d63638] hover:bg-red-50 rounded text-xs cursor-pointer"
                       title="মুছে ফেলুন"
                     >
                       <i className="fa fa-trash"></i>
@@ -170,6 +180,17 @@ export const TickerManager: React.FC<TickerManagerProps> = ({
           )}
         </div>
       </div>
+
+      {/* Ticker Delete Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!tickerToDelete}
+        title="ব্রেকিং শিরোনাম মুছে ফেলার নিশ্চয়তা"
+        itemName={tickerToDelete?.title}
+        description="আপনি কি নিশ্চিত যে এই স্ক্রোলিং শিরোনামটি মুছে ফেলতে চান? এটি উপরের লাল/কালো চলমান বার থেকে বাদ পড়বে।"
+        isDeleting={isDeleting}
+        onConfirm={confirmDelete}
+        onClose={() => setTickerToDelete(null)}
+      />
     </div>
   );
 };

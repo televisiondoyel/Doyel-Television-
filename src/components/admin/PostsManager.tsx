@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { NewsArticle, CategoryItem } from '../../types';
 import { AdminTab } from './AdminLayout';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface PostsManagerProps {
   articles: NewsArticle[];
@@ -23,6 +24,7 @@ export const PostsManager: React.FC<PostsManagerProps> = ({
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [articleToDelete, setArticleToDelete] = useState<{ id: string; title: string } | null>(null);
   const itemsPerPage = 12;
 
   // Filtered articles
@@ -44,14 +46,17 @@ export const PostsManager: React.FC<PostsManagerProps> = ({
     currentPage * itemsPerPage
   );
 
-  const handleDelete = async (id: string, title: string) => {
-    if (window.confirm(`আপনি কি নিশ্চিত যে "${title}" সংবাদটি ডিলিট করতে চান?`)) {
-      setDeletingId(id);
-      try {
-        await onDeleteArticle(id);
-      } finally {
-        setDeletingId(null);
-      }
+  const confirmDelete = async () => {
+    if (!articleToDelete) return;
+    const id = articleToDelete.id;
+    setDeletingId(id);
+    try {
+      await onDeleteArticle(id);
+      setArticleToDelete(null);
+    } catch (err) {
+      console.error('Error deleting article:', err);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -177,9 +182,9 @@ export const PostsManager: React.FC<PostsManagerProps> = ({
                         </button>
                         <span>|</span>
                         <button
-                          onClick={() => handleDelete(art.id, art.title)}
+                          onClick={() => setArticleToDelete({ id: art.id, title: art.title })}
                           disabled={deletingId === art.id}
-                          className="text-[#d63638] hover:underline"
+                          className="text-[#d63638] hover:underline cursor-pointer"
                         >
                           {deletingId === art.id ? 'মুছে ফেলা হচ্ছে...' : 'ট্র্যাশ / ডিলিট'}
                         </button>
@@ -240,14 +245,14 @@ export const PostsManager: React.FC<PostsManagerProps> = ({
                       <div className="flex items-center justify-center gap-1.5">
                         <button
                           onClick={() => onNavigate('edit-post', art.id)}
-                          className="p-1 text-[#2271b1] hover:bg-blue-50 rounded"
+                          className="p-1 text-[#2271b1] hover:bg-blue-50 rounded cursor-pointer"
                           title="সম্পাদনা করুন"
                         >
                           <i className="fa fa-pencil"></i>
                         </button>
                         <button
-                          onClick={() => handleDelete(art.id, art.title)}
-                          className="p-1 text-[#d63638] hover:bg-red-50 rounded"
+                          onClick={() => setArticleToDelete({ id: art.id, title: art.title })}
+                          className="p-1 text-[#d63638] hover:bg-red-50 rounded cursor-pointer"
                           title="মুছে ফেলুন"
                         >
                           <i className="fa fa-trash"></i>
@@ -287,6 +292,17 @@ export const PostsManager: React.FC<PostsManagerProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!articleToDelete}
+        title="সংবাদ মুছে ফেলার নিশ্চয়তা"
+        itemName={articleToDelete?.title}
+        description="আপনি কি নিশ্চিত যে এই সংবাদটি স্থায়ীভাবে ডাটাবেজ থেকে মুছে ফেলতে চান?"
+        isDeleting={!!deletingId}
+        onConfirm={confirmDelete}
+        onClose={() => setArticleToDelete(null)}
+      />
     </div>
   );
 };
