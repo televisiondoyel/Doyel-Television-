@@ -68,7 +68,7 @@ export const Footer: React.FC<FooterProps> = ({ settings, onOpenAdmin }) => {
               <ul className="flex flex-wrap items-center justify-center gap-2 text-xs">
                 <li>
                   <a
-                    href={settings?.facebookUrl || 'https://facebook.com'}
+                    href={settings?.facebookUrl || 'https://www.facebook.com/share/19cpbxC35r/'}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="bg-[#1877F2] text-white px-2.5 py-1 rounded inline-flex items-center gap-1 hover:opacity-90 transition-opacity"

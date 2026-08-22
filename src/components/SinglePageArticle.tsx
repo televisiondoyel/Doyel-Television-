@@ -629,14 +629,14 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
           {/* Social Box Widget in Sidebar */}
           <div className="social-widget mt-4 bg-white border border-gray-200 rounded p-3 shadow-xs">
             <div className="facebook_title bg-[#F7F7F7] p-2 text-sm font-bold text-gray-800 border-l-4 border-[#F90202] mb-3">
-              ফেইসবুকে আমরা
+              ফেসবুকে আমরা
             </div>
             <div className="bg-[#1877F2] text-white p-3 rounded text-center">
               <i className="fa fa-facebook-square text-3xl mb-1"></i>
-              <p className="font-bold text-sm">Doyel Television</p>
-              <p className="text-[11px] text-blue-100 mb-2">৫২,৪০০ লাইক • ফেসবুক পেজ ফলো করুন</p>
+              <p className="font-bold text-sm">{siteSettings?.siteTitle ? siteSettings.siteTitle.split('-')[0].trim() : 'Doyel Television'}</p>
+              <p className="text-[11px] text-blue-100 mb-2">২.৪ হাজার লাইক • ফেসবুক পেজ ফলো করুন</p>
               <a
-                href="https://facebook.com/themesbazar"
+                href={siteSettings?.facebookUrl || 'https://www.facebook.com/share/19cpbxC35r/'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block bg-white text-[#1877F2] text-xs font-bold px-3 py-1.5 rounded shadow-xs hover:bg-gray-100 transition-colors"
