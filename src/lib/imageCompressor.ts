@@ -1,6 +1,7 @@
 /**
  * Client-side image compression utility to ensure uploaded images
  * stay well within Firestore document size limits (max 1MB per document, target < 150KB per image).
+ * Note: GIF files are kept intact to preserve animation frames.
  */
 
 export async function compressImage(
@@ -9,6 +10,29 @@ export async function compressImage(
   maxHeight: number = 800,
   quality: number = 0.75
 ): Promise<string> {
+  // Check if this is an animated GIF
+  const isGif =
+    (typeof fileOrDataUrl !== 'string' &&
+      (fileOrDataUrl.type === 'image/gif' ||
+        ('name' in fileOrDataUrl && typeof fileOrDataUrl.name === 'string' && fileOrDataUrl.name.toLowerCase().endsWith('.gif')))) ||
+    (typeof fileOrDataUrl === 'string' &&
+      (fileOrDataUrl.startsWith('data:image/gif') || fileOrDataUrl.toLowerCase().includes('.gif')));
+
+  // If it is a GIF File/Blob, read it directly as DataURL so all animation frames remain intact
+  if (isGif && typeof fileOrDataUrl !== 'string') {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(fileOrDataUrl);
+    });
+  }
+
+  // If it is already a GIF string/data URL, preserve it as-is
+  if (isGif && typeof fileOrDataUrl === 'string') {
+    return fileOrDataUrl;
+  }
+
   return new Promise((resolve, reject) => {
     let src = '';
     let isObjectUrl = false;
@@ -88,10 +112,14 @@ export async function compressImage(
 }
 
 /**
- * Ensures any large data URL in a string is compressed
+ * Ensures any large data URL in a string is compressed (excluding animated GIFs)
  */
 export async function sanitizeImageUrl(url: string, maxDim: number = 600): Promise<string> {
   if (!url || typeof url !== 'string') return url || '';
+  // Never destroy animated GIF by converting to JPEG canvas
+  if (url.startsWith('data:image/gif') || url.toLowerCase().includes('.gif')) {
+    return url;
+  }
   if (url.startsWith('data:image/') && url.length > 200000) {
     try {
       return await compressImage(url, maxDim, maxDim, 0.7);
