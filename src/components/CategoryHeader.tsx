@@ -74,11 +74,16 @@ export const CategoryHeader: React.FC<CategoryHeaderProps> = ({
     if (iconKey.includes('comment') || iconKey.includes('message') || iconKey.includes('মতামত')) {
       return <MessageSquareQuote className="w-4 h-4 shrink-0 text-white" />;
     }
-    if (iconKey.includes('camera') || iconKey.includes('ফটো')) {
-      return <Camera className="w-4 h-4 shrink-0 text-white" />;
-    }
-    if (iconKey.includes('video') || iconKey.includes('ভিডিও')) {
+    if (
+      iconKey.includes('video') ||
+      iconKey.includes('ভিডিও') ||
+      iconKey.includes('youtube') ||
+      iconKey.includes('play')
+    ) {
       return <Video className="w-4 h-4 shrink-0 text-white" />;
+    }
+    if (iconKey.includes('camera') || iconKey.includes('ফটো') || iconKey.includes('ছবি') || iconKey.includes('photo')) {
+      return <Camera className="w-4 h-4 shrink-0 text-white" />;
     }
     if (iconKey.includes('landmark') || iconKey.includes('রাজনীতি')) {
       return <Landmark className="w-4 h-4 shrink-0 text-white" />;
