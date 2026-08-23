@@ -48,7 +48,8 @@ import {
   subscribeToVideos,
   subscribeToFamilyMembers,
   defaultSettings,
-  defaultCategories
+  defaultCategories,
+  sortArticlesNewestFirst
 } from './lib/firestoreService';
 
 export default function App() {
@@ -288,28 +289,28 @@ export default function App() {
 
   // Compute all articles (using real firestore articles, or initial defaults before first load only)
   const allArticles = useMemo(() => {
-    if (hasLoadedArticles) {
-      return articles;
+    let list: NewsArticle[] = [];
+    if (hasLoadedArticles || articles.length > 0) {
+      list = articles;
+    } else {
+      list = [
+        defaultLead,
+        ...defaultSideLead,
+        ...defaultGridTwo,
+        defaultNationalMain,
+        ...defaultNationalList,
+        ...defaultInternational,
+        defaultEconomy.featured,
+        defaultLaw.featured,
+        defaultEntertainment.featured,
+        ...defaultMedia,
+        ...defaultSports,
+        defaultTech.featured,
+        defaultEducation.featured,
+        defaultOpinion.featured,
+      ];
     }
-    if (articles.length > 0) {
-      return articles;
-    }
-    return [
-      defaultLead,
-      ...defaultSideLead,
-      ...defaultGridTwo,
-      defaultNationalMain,
-      ...defaultNationalList,
-      ...defaultInternational,
-      defaultEconomy.featured,
-      defaultLaw.featured,
-      defaultEntertainment.featured,
-      ...defaultMedia,
-      ...defaultSports,
-      defaultTech.featured,
-      defaultEducation.featured,
-      defaultOpinion.featured,
-    ];
+    return sortArticlesNewestFirst(list);
   }, [hasLoadedArticles, articles]);
 
   // Lead Story Dynamic Computation

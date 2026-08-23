@@ -344,6 +344,38 @@ export async function seedFirestoreIfEmpty(): Promise<boolean> {
 }
 
 // ----------------------------------------------------
+// HELPER: SORT ARTICLES NEWEST FIRST (CHRONOLOGICAL)
+// ----------------------------------------------------
+
+export function getArticleTime(a: NewsArticle): number {
+  if (a.createdAt) {
+    const t = new Date(a.createdAt).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  if (a.updatedAt) {
+    const t = new Date(a.updatedAt).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  if (typeof a.id === 'string' && (a.id.startsWith('news-') || a.id.startsWith('art-'))) {
+    const num = parseInt(a.id.replace(/^(news-|art-)/, ''), 10);
+    if (!isNaN(num) && num > 0) return num;
+  }
+  const numId = parseInt(String(a.id), 10);
+  if (!isNaN(numId)) {
+    return numId;
+  }
+  return 0;
+}
+
+export function sortArticlesNewestFirst(articles: NewsArticle[]): NewsArticle[] {
+  return [...articles].sort((a, b) => {
+    const timeA = getArticleTime(a);
+    const timeB = getArticleTime(b);
+    return timeB - timeA;
+  });
+}
+
+// ----------------------------------------------------
 // REALTIME SUBSCRIPTIONS
 // ----------------------------------------------------
 
@@ -356,7 +388,9 @@ export function subscribeToArticles(callback: (articles: NewsArticle[]) => void)
       snapshot.forEach((docSnap) => {
         list.push({ ...(docSnap.data() as NewsArticle), id: docSnap.id });
       });
-      callback(list);
+      // Sort newest articles to the front, older articles in the back
+      const sorted = sortArticlesNewestFirst(list);
+      callback(sorted);
     },
     (err) => {
       console.error('Articles subscription error:', err);

@@ -51,7 +51,9 @@ export const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
 
   const popularTabArticles = useMemo(() => {
     const pool = allArticles.length > 0 ? allArticles : articles;
-    return [...pool].reverse().slice(0, 10);
+    return [...pool]
+      .sort((a, b) => (Number(b.views) || 0) - (Number(a.views) || 0))
+      .slice(0, 10);
   }, [allArticles, articles]);
 
   // Pagination for category articles
