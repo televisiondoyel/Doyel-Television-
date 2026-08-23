@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { NewsArticle, SiteSettings } from '../types';
 import { ImageWithFallback } from './ImageWithFallback';
 import { AdBanner } from './AdBanner';
+import { incrementArticleViews } from '../lib/firestoreService';
 
 interface SinglePageArticleProps {
   article: NewsArticle;
@@ -19,6 +20,11 @@ interface CommentItem {
   date: string;
 }
 
+const toBanglaNum = (num: number | string): string => {
+  const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+  return String(num).replace(/[0-9]/g, (d) => bnDigits[parseInt(d, 10)]);
+};
+
 export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
   article,
   onClose,
@@ -27,15 +33,38 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
   allArticles = [],
 }) => {
   const [activeTab, setActiveTab] = useState<'latest' | 'popular'>('latest');
-  const [comments, setComments] = useState<CommentItem[]>([
-    {
-      id: '1',
-      name: 'মোঃ রফিকুল ইসলাম',
-      email: 'rafiq@example.com',
-      comment: 'খুবই সময়োপযোগী ও বস্তুনিষ্ঠ প্রতিবেদন। ধন্যবাদ দোয়েল টেলিভিশন টিমকে।',
-      date: 'আজ, ১০:১৫ পূর্বাহ্ন',
-    },
-  ]);
+
+  // Real view count management: increments each time article is opened and syncs to database
+  const initialViews = useMemo(() => {
+    if (typeof article.views === 'number' && !isNaN(article.views) && article.views > 0) {
+      return article.views;
+    }
+    const parsed = parseInt(String(article.views || ''), 10);
+    return !isNaN(parsed) && parsed > 0 ? parsed : 1;
+  }, [article.id, article.views]);
+
+  const [viewCount, setViewCount] = useState<number>(initialViews);
+
+  useEffect(() => {
+    const nextViews = initialViews + 1;
+    setViewCount(nextViews);
+    if (article.id) {
+      incrementArticleViews(String(article.id));
+    }
+  }, [article.id]);
+
+  // Clean Real Comments Management per Article (no mock comments)
+  const [comments, setComments] = useState<CommentItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(`news_comments_${article.id}`);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch {
+      // ignore
+    }
+    return [];
+  });
 
   const [authorName, setAuthorName] = useState('');
   const [authorEmail, setAuthorEmail] = useState('');
@@ -43,9 +72,19 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
   const [commentText, setCommentText] = useState('');
   const [commentSubmitted, setCommentSubmitted] = useState(false);
 
-  // Scroll to top when article changes
+  // Scroll to top and reload comments when article changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    try {
+      const saved = localStorage.getItem(`news_comments_${article.id}`);
+      if (saved) {
+        setComments(JSON.parse(saved));
+      } else {
+        setComments([]);
+      }
+    } catch {
+      setComments([]);
+    }
   }, [article.id]);
 
   // Handle comment submit
@@ -61,7 +100,14 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
       date: 'এইমাত্র',
     };
 
-    setComments([newComment, ...comments]);
+    const updated = [newComment, ...comments];
+    setComments(updated);
+    try {
+      localStorage.setItem(`news_comments_${article.id}`, JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+
     setCommentText('');
     setCommentSubmitted(true);
     setTimeout(() => setCommentSubmitted(false), 4000);
@@ -154,22 +200,7 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
                     </li>
                     <li className="active flex items-center gap-1.5 bg-red-50 text-[#9A1515] px-2 py-0.5 rounded font-semibold border border-red-100">
                       <i className="fa fa-eye"></i>
-                      <span>
-                        {typeof article.views === 'number'
-                          ? String(article.views)
-                              .replace(/0/g, '০')
-                              .replace(/1/g, '১')
-                              .replace(/2/g, '২')
-                              .replace(/3/g, '৩')
-                              .replace(/4/g, '৪')
-                              .replace(/5/g, '৫')
-                              .replace(/6/g, '৬')
-                              .replace(/7/g, '৭')
-                              .replace(/8/g, '৮')
-                              .replace(/9/g, '৯')
-                          : article.views || '৮৫০'}
-                      </span>
-                      <span>বার</span>
+                      <span>{toBanglaNum(viewCount)} বার</span>
                     </li>
                   </ul>
                 </div>
@@ -419,7 +450,7 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
             {/* Displayed User Comments */}
             {comments.length > 0 && (
               <div className="mt-6 pt-4 border-t border-gray-200">
-                <h4 className="text-sm font-bold text-gray-700 mb-3">পূর্ববর্তী মন্তব্যসমূহ ({comments.length})</h4>
+                <h4 className="text-sm font-bold text-gray-700 mb-3">পূর্ববর্তী মন্তব্যসমূহ ({toBanglaNum(comments.length)})</h4>
                 <div className="space-y-3">
                   {comments.map((c) => (
                     <div key={c.id} className="bg-white p-3 rounded border border-gray-200 text-xs sm:text-sm">

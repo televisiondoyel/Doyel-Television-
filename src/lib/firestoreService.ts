@@ -9,7 +9,8 @@ import {
   onSnapshot,
   query,
   orderBy,
-  writeBatch
+  writeBatch,
+  increment
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { NewsArticle, PhotoSlide, VideoSlide, TickerItem, CategoryItem, SiteSettings, FamilyMember } from '../types';
@@ -490,6 +491,20 @@ export async function deleteArticleFromDb(id: string): Promise<void> {
     await deleteDoc(doc(db, 'ticker', id));
   } catch (e) {
     // Ignore if not in ticker
+  }
+}
+
+export async function incrementArticleViews(id: string): Promise<void> {
+  try {
+    const artRef = doc(db, 'articles', id);
+    const snap = await getDoc(artRef);
+    if (snap.exists()) {
+      await updateDoc(artRef, {
+        views: increment(1),
+      });
+    }
+  } catch (e) {
+    console.warn('Could not increment article views in Firestore:', e);
   }
 }
 

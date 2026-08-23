@@ -168,11 +168,6 @@ export const SidebarWidgets: React.FC<SidebarWidgetsProps> = ({
                   </h4>
                   <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-500">
                     <span>{item.date}</span>
-                    {item.views && (
-                      <span className="text-[#004F8A]">
-                        <i className="fa fa-eye mr-0.5"></i> {item.views}
-                      </span>
-                    )}
                   </div>
                 </div>
               </div>
