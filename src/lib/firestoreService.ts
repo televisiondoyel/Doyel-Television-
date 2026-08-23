@@ -537,6 +537,7 @@ export async function saveArticleToDb(article: Partial<NewsArticle> & { title: s
     content: article.content || '',
     date: article.date || new Date().toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' }),
     author: article.author || 'অনলাইন ডেস্ক',
+    imageCaption: article.imageCaption !== undefined ? article.imageCaption : 'ফাইল ছবি',
     views: typeof article.views === 'number' ? article.views : Math.floor(Math.random() * 200) + 10,
     featured: Boolean(article.featured),
     lead: Boolean(article.lead),

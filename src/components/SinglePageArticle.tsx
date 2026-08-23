@@ -219,7 +219,7 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
               />
             </div>
             <div className="caption bg-[#F0F0F0] px-3 py-2 text-xs sm:text-sm text-gray-700 border-l-4 border-[#004F8A] font-medium flex items-center justify-between">
-              <span>ফাইল ছবি</span>
+              <span>{article.imageCaption || 'ফাইল ছবি'}</span>
               <span className="text-[11px] text-gray-500">{article.category}</span>
             </div>
           </div>

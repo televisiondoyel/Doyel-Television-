@@ -27,6 +27,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({
   const [category, setCategory] = useState(initialArticle?.category || 'জাতীয়');
   const [subcategory, setSubcategory] = useState(initialArticle?.subcategory || '');
   const [author, setAuthor] = useState(initialArticle?.author || 'অনলাইন ডেস্ক');
+  const [imageCaption, setImageCaption] = useState(initialArticle?.imageCaption ?? 'ফাইল ছবি');
   const [image, setImage] = useState(
     initialArticle?.image ||
       'https://newssitedesign.com/professionalnews/wp-content/uploads/2017/11/456575124-600x337.jpg'
@@ -74,6 +75,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({
           subcategory: subcategory.trim() || undefined,
           author,
           image,
+          imageCaption: imageCaption.trim() || 'ফাইল ছবি',
           lead,
           isTicker,
         });
@@ -87,7 +89,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [title, content, excerpt, category, subcategory, author, image, lead, isTicker]);
+  }, [title, content, excerpt, category, subcategory, author, image, imageCaption, lead, isTicker]);
 
   const handleManualSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,6 +108,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({
         subcategory: subcategory.trim() || undefined,
         author,
         image,
+        imageCaption: imageCaption.trim() || 'ফাইল ছবি',
         lead,
         isTicker,
       });
@@ -554,6 +557,48 @@ export const PostEditor: React.FC<PostEditorProps> = ({
                       'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=400';
                   }}
                 />
+              </div>
+
+              {/* Image Caption / Photo Credit Input */}
+              <div className="bg-blue-50/60 p-2.5 rounded border border-blue-100">
+                <label className="block text-xs font-semibold text-gray-800 mb-1 flex items-center justify-between">
+                  <span>ছবির ক্যাপশন / ক্রেডিট:</span>
+                  <span className="text-[10px] text-gray-500 font-normal">ডিফল্ট: ফাইল ছবি</span>
+                </label>
+                <input
+                  type="text"
+                  value={imageCaption}
+                  onChange={(e) => setImageCaption(e.target.value)}
+                  placeholder="যেমন: ফাইল ছবি / নিজস্ব চিত্র / সংগৃহীত..."
+                  className="w-full text-xs border border-gray-300 rounded px-2.5 py-1.5 outline-none focus:border-[#2271b1] bg-white font-medium text-gray-800"
+                />
+                
+                {/* Quick Selection Buttons */}
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {[
+                    'ফাইল ছবি',
+                    'নিজস্ব চিত্র',
+                    'সংগৃহীত',
+                    'প্রতিনিধি',
+                    'রয়টার্স',
+                    'এএফপি',
+                    'ছবি: সংগৃহীত',
+                    'ছবি: পিআইডি',
+                  ].map((label) => (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => setImageCaption(label)}
+                      className={`text-[10.5px] px-2 py-0.5 rounded border transition-colors ${
+                        imageCaption === label
+                          ? 'bg-[#2271b1] text-white border-[#2271b1]'
+                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Image URL Input */}

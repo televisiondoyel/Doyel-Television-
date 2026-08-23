@@ -9,6 +9,7 @@ export interface NewsArticle {
   content: string;
   date: string;
   author?: string;
+  imageCaption?: string;
   views?: number;
   featured?: boolean;
   lead?: boolean;
