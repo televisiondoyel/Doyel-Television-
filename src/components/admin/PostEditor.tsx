@@ -356,29 +356,57 @@ export const PostEditor: React.FC<PostEditorProps> = ({
             </div>
           </div>
 
-          {/* 2. Category Selector Box */}
+          {/* 2. Category & Subcategory Selector Box */}
           <div className="bg-white border border-[#c3c4c7] rounded shadow-2xs">
             <div className="px-4 py-2.5 border-b border-[#c3c4c7] bg-[#f6f7f7] font-semibold text-[13px] text-gray-800 flex items-center justify-between">
-              <span>ক্যাটাগরি ও বিভাগ (Categories)</span>
+              <span>ক্যাটাগরি ও সাব-ক্যাটাগরি (বিভাগ)</span>
               <i className="fa fa-folder-open text-[#2271b1]"></i>
             </div>
             <div className="p-4 space-y-3">
               {/* Selected category pill */}
-              <div className="bg-blue-50 border border-blue-200 rounded p-2 text-xs flex items-center justify-between">
-                <span className="text-gray-600">নির্বাচিত ক্যাটাগরি:</span>
-                <span className="font-bold text-[#004F8A] bg-white px-2 py-0.5 rounded border border-blue-300">
-                  {category || 'জাতীয়'}
-                </span>
+              <div className="bg-blue-50/70 border border-blue-200 rounded p-2 text-xs space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">মূল ক্যাটাগরি:</span>
+                  <span className="font-bold text-[#004F8A] bg-white px-2 py-0.5 rounded border border-blue-300">
+                    {category || 'জাতীয়'}
+                  </span>
+                </div>
+                {subcategory && (
+                  <div className="flex items-center justify-between pt-1 border-t border-blue-200/60">
+                    <span className="text-gray-600">সাব-ক্যাটাগরি / বিভাগ:</span>
+                    <span className="font-bold text-[#9A1515] bg-white px-2 py-0.5 rounded border border-red-200 flex items-center gap-1">
+                      {subcategory}
+                      <button
+                        type="button"
+                        onClick={() => setSubcategory('')}
+                        className="text-gray-400 hover:text-red-600 ml-1"
+                        title="মুছে ফেলুন"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {/* Quick Divisional Chips */}
-              <div>
-                <label className="block text-[11px] font-bold text-gray-700 mb-1.5 uppercase tracking-wide">
-                  বিভাগ ভিত্তিক কুইক সিলেক্ট (Divisions):
+              {/* Quick Divisional Sub-Category Selector */}
+              <div className="bg-amber-50/50 border border-amber-200/80 rounded p-2.5">
+                <label className="block text-[11px] font-bold text-[#9A1515] mb-1.5 uppercase tracking-wide flex items-center justify-between">
+                  <span>
+                    <i className="fa fa-map-marker mr-1"></i> সারাদেশে (বিভাগ ভিত্তিক সাব-ক্যাটাগরি):
+                  </span>
+                  {subcategory && (
+                    <button
+                      type="button"
+                      onClick={() => setSubcategory('')}
+                      className="text-[10px] text-gray-500 hover:text-red-600 normal-case underline"
+                    >
+                      রিসেট
+                    </button>
+                  )}
                 </label>
-                <div className="flex flex-wrap gap-1">
+                <div className="grid grid-cols-2 gap-1">
                   {[
-                    'সারাদেশে',
                     'ঢাকা-বিভাগ',
                     'চট্রগ্রাম-বিভাগ',
                     'খুলনা-বিভাগ',
@@ -391,14 +419,18 @@ export const PostEditor: React.FC<PostEditorProps> = ({
                     <button
                       key={divName}
                       type="button"
-                      onClick={() => setCategory(divName)}
-                      className={`text-[11px] px-2 py-1 rounded transition-colors ${
-                        category === divName
-                          ? 'bg-[#9A1515] text-white font-bold shadow-xs'
-                          : 'bg-gray-100 hover:bg-blue-50 text-gray-700 hover:text-[#004F8A] border border-gray-200'
+                      onClick={() => {
+                        setSubcategory(divName);
+                        setCategory('সারাদেশে');
+                      }}
+                      className={`text-[11px] px-2 py-1.5 rounded transition-all text-left flex items-center justify-between border ${
+                        subcategory === divName
+                          ? 'bg-[#9A1515] text-white font-bold border-[#9A1515] shadow-xs'
+                          : 'bg-white hover:bg-red-50 text-gray-700 hover:text-[#9A1515] border-gray-200'
                       }`}
                     >
-                      {divName}
+                      <span>{divName}</span>
+                      {subcategory === divName && <i className="fa fa-check text-[10px]"></i>}
                     </button>
                   ))}
                 </div>
@@ -411,7 +443,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({
                     type="text"
                     value={catSearch}
                     onChange={(e) => setCatSearch(e.target.value)}
-                    placeholder="ক্যাটাগরি খুঁজুন (যেমন: রাজনীতি, খেলা, খুলনা...)"
+                    placeholder="ক্যাটাগরি খুঁজুন (যেমন: রাজনীতি, খেলা, আন্তর্জাতিক...)"
                     className="w-full text-xs border border-gray-300 rounded pl-7 pr-2 py-1 outline-none focus:border-[#2271b1]"
                   />
                   <i className="fa fa-search absolute left-2.5 top-2 text-gray-400 text-[10px]"></i>
@@ -449,17 +481,17 @@ export const PostEditor: React.FC<PostEditorProps> = ({
               {/* Subcategory / District Input Field */}
               <div className="pt-2 border-t border-gray-100">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  উপ-ক্যাটাগরি / জেলা / উপজেলা (ঐচ্ছিক):
+                  নির্দিষ্ট জেলা / উপজেলা / এলাকা (ঐচ্ছিক):
                 </label>
                 <input
                   type="text"
                   value={subcategory}
                   onChange={(e) => setSubcategory(e.target.value)}
-                  placeholder="যেমন: সন্দ্বীপ, কক্সবাজার, যশোর..."
+                  placeholder="যেমন: সন্দ্বীপ, চট্টগ্রাম / কক্সবাজার / যশোর..."
                   className="w-full border border-gray-300 rounded px-2.5 py-1 text-xs outline-none focus:border-[#2271b1]"
                 />
                 <p className="text-[10.5px] text-gray-400 mt-0.5">
-                  নির্দিষ্ট জেলা বা উপ-বিভাগের নাম লিখলে পাঠক সার্চ করে সহজে খুঁজে পাবেন।
+                  বিভাগ সিলেক্ট করার পর চাইলে নির্দিষ্ট জেলা বা উপজেলার নামও লিখতে পারেন।
                 </p>
               </div>
 

@@ -568,6 +568,7 @@ export default function App() {
               allArticles={allArticles}
               onSelectArticle={handleOpenArticle}
               onClose={() => handleCategorySelect('প্রচ্ছদ')}
+              onSelectCategory={handleCategorySelect}
               siteSettings={siteSettings}
             />
           ) : currentFilterCategory === 'আমাদের পরিবার' ? (

@@ -9,6 +9,7 @@ interface CategoryArchivePageProps {
   allArticles?: NewsArticle[];
   onSelectArticle: (idOrTitle: string | number) => void;
   onClose: () => void;
+  onSelectCategory?: (cat: string) => void;
   siteSettings?: SiteSettings;
 }
 
@@ -18,11 +19,29 @@ export const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
   allArticles = [],
   onSelectArticle,
   onClose,
+  onSelectCategory,
   siteSettings,
 }) => {
   const [activeTab, setActiveTab] = useState<'latest' | 'popular'>('latest');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 10;
+
+  const divisionList = [
+    'ঢাকা-বিভাগ',
+    'চট্রগ্রাম-বিভাগ',
+    'খুলনা-বিভাগ',
+    'রাজশাহী-বিভাগ',
+    'বরিশাল-বিভাগ',
+    'সিলেট-বিভাগ',
+    'রংপুর-বিভাগ',
+    'ময়মনসিংহ-বিভাগ',
+  ];
+
+  const isDivisionContext =
+    category === 'সারাদেশে' ||
+    category === 'সারাদেশ' ||
+    divisionList.includes(category) ||
+    category.includes('বিভাগ');
 
   // Sidebar tab news derived dynamically
   const latestTabArticles = useMemo(() => {

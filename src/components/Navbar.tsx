@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface NavbarProps {
   activeCategory: string;
@@ -10,15 +10,19 @@ export const Navbar: React.FC<NavbarProps> = ({ activeCategory, onSelectCategory
   const [saradeshOpen, setSaradeshOpen] = useState(false);
   const [otherOpen, setOtherOpen] = useState(false);
 
+  const saradeshRef = useRef<HTMLLIElement>(null);
+  const otherRef = useRef<HTMLLIElement>(null);
+
+  // Exact division list ordered as shown in user's image & request
   const divisionList = [
-    'ঢাকা-বিভাগ',
-    'চট্রগ্রাম-বিভাগ',
     'খুলনা-বিভাগ',
-    'রাজশাহী-বিভাগ',
-    'বরিশাল-বিভাগ',
-    'সিলেট-বিভাগ',
-    'রংপুর-বিভাগ',
+    'চট্রগ্রাম-বিভাগ',
+    'ঢাকা-বিভাগ',
     'ময়মনসিংহ-বিভাগ',
+    'রংপুর-বিভাগ',
+    'রাজশাহী-বিভাগ',
+    'সিলেট-বিভাগ',
+    'বরিশাল-বিভাগ',
   ];
 
   const otherList = [
@@ -41,12 +45,28 @@ export const Navbar: React.FC<NavbarProps> = ({ activeCategory, onSelectCategory
     'স্বাস্থ্য',
   ];
 
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (saradeshRef.current && !saradeshRef.current.contains(event.target as Node)) {
+        setSaradeshOpen(false);
+      }
+      if (otherRef.current && !otherRef.current.contains(event.target as Node)) {
+        setOtherOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleCategoryClick = (cat: string) => {
     onSelectCategory(cat);
     setMobileMenuOpen(false);
     setSaradeshOpen(false);
     setOtherOpen(false);
   };
+
+  const isSaradeshActive = activeCategory === 'সারাদেশে' || divisionList.includes(activeCategory);
 
   return (
     <nav className="menu_bottom relative z-30 my-2">
@@ -92,52 +112,41 @@ export const Navbar: React.FC<NavbarProps> = ({ activeCategory, onSelectCategory
 
           {/* Saradeshe with Dropdown */}
           <li
+            ref={saradeshRef}
             className="relative group"
             onMouseEnter={() => setSaradeshOpen(true)}
             onMouseLeave={() => setSaradeshOpen(false)}
           >
-            <button
-              onClick={() => handleCategoryClick('সারাদেশে')}
-              className={`w-full text-left lg:w-auto px-4 py-2.5 flex items-center justify-between lg:justify-start gap-1 transition-colors border-b lg:border-b-0 lg:border-r border-[#174384] ${
-                activeCategory === 'সারাদেশে' || divisionList.includes(activeCategory)
-                  ? 'bg-[#9A1515] font-bold text-white'
-                  : 'hover:bg-[#004F8A]'
-              }`}
-            >
-              <span>সারাদেশে</span>
-              <i className="fa fa-caret-down text-xs"></i>
-            </button>
+            <div className="flex items-stretch border-b lg:border-b-0 lg:border-r border-[#174384]">
+              <button
+                onClick={() => setSaradeshOpen(!saradeshOpen)}
+                className={`w-full text-left lg:w-auto px-4 py-2.5 flex items-center justify-between lg:justify-start gap-1.5 transition-colors ${
+                  isSaradeshActive
+                    ? 'bg-[#9A1515] font-bold text-white'
+                    : 'hover:bg-[#004F8A]'
+                }`}
+              >
+                <span>সারাদেশে</span>
+                <i className={`fa fa-caret-down text-xs transition-transform duration-200 ${saradeshOpen ? 'rotate-180' : ''}`}></i>
+              </button>
+            </div>
 
-            {/* Dropdown Menu */}
+            {/* Dropdown Menu matching user image style */}
             <ul
               className={`${
                 saradeshOpen ? 'block' : 'hidden'
-              } lg:absolute top-full left-0 w-full lg:w-52 bg-[#1F4565] border-t border-[#004F8A] shadow-xl z-50`}
+              } lg:absolute top-full left-0 w-full lg:w-48 bg-[#183B5E] border-t-2 border-[#2b6cb0] shadow-2xl z-50 py-1`}
             >
-              <li>
-                <button
-                  onClick={() => handleCategoryClick('সারাদেশে')}
-                  className={`w-full text-left px-4 py-2.5 text-sm font-semibold transition-colors border-b border-[#174384] ${
-                    activeCategory === 'সারাদেশে'
-                      ? 'bg-[#9A1515] text-white'
-                      : 'text-yellow-300 hover:bg-[#004F8A] hover:text-white'
-                  }`}
-                >
-                  <i className="fa fa-map-marker mr-1.5 text-xs"></i>
-                  সারাদেশ (সকল বিভাগ)
-                </button>
-              </li>
               {divisionList.map((div) => (
                 <li key={div}>
                   <button
                     onClick={() => handleCategoryClick(div)}
-                    className={`w-full text-left px-4 py-2 text-sm transition-colors border-b border-[#174384] ${
+                    className={`w-full text-left px-4 py-2 text-[14px] transition-colors border-b border-[#234b73]/40 last:border-b-0 ${
                       activeCategory === div
                         ? 'bg-[#9A1515] text-white font-bold'
-                        : 'text-gray-100 hover:bg-[#9A1515] hover:text-white'
+                        : 'text-gray-100 hover:bg-[#204a75] hover:text-white'
                     }`}
                   >
-                    <i className="fa fa-angle-right mr-1.5 text-xs text-blue-300"></i>
                     {div}
                   </button>
                 </li>
@@ -219,6 +228,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeCategory, onSelectCategory
 
           {/* Others with Multi-column Dropdown */}
           <li
+            ref={otherRef}
             className="relative group"
             onMouseEnter={() => setOtherOpen(true)}
             onMouseLeave={() => setOtherOpen(false)}
