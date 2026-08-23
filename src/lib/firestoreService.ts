@@ -77,14 +77,28 @@ export const defaultCategories: CategoryItem[] = [
   { id: 'cat-4', name: 'আন্তর্জাতিক', slug: 'international', order: 4, visible: true },
   { id: 'cat-5', name: 'অর্থনীতি', slug: 'economy', order: 5, visible: true },
   { id: 'cat-6', name: 'খেলাধুলা', slug: 'sports', order: 6, visible: true },
-  { id: 'cat-7', name: 'বিনোদন', slug: 'entertainment', order: 7, visible: true },
-  { id: 'cat-8', name: 'তথ্যপ্রযুক্তি', slug: 'technology', order: 8, visible: true },
-  { id: 'cat-9', name: 'শিক্ষা', slug: 'education', order: 9, visible: true },
-  { id: 'cat-10', name: 'আইন-আদালত', slug: 'law', order: 10, visible: true },
-  { id: 'cat-11', name: 'মতামত', slug: 'opinion', order: 11, visible: true },
-  { id: 'cat-12', name: 'গণমাধ্যম', slug: 'media', order: 12, visible: true },
-  { id: 'cat-13', name: 'ছবি', slug: 'photos', order: 13, visible: true },
-  { id: 'cat-14', name: 'ভিডিও', slug: 'videos', order: 14, visible: true },
+  { id: 'cat-7', name: 'সারাদেশে', slug: 'saradesh', order: 7, visible: true },
+  { id: 'cat-div-1', name: 'ঢাকা-বিভাগ', slug: 'dhaka-division', order: 8, visible: true },
+  { id: 'cat-div-2', name: 'চট্রগ্রাম-বিভাগ', slug: 'chittagong-division', order: 9, visible: true },
+  { id: 'cat-div-3', name: 'খুলনা-বিভাগ', slug: 'khulna-division', order: 10, visible: true },
+  { id: 'cat-div-4', name: 'রাজশাহী-বিভাগ', slug: 'rajshahi-division', order: 11, visible: true },
+  { id: 'cat-div-5', name: 'বরিশাল-বিভাগ', slug: 'barisal-division', order: 12, visible: true },
+  { id: 'cat-div-6', name: 'সিলেট-বিভাগ', slug: 'sylhet-division', order: 13, visible: true },
+  { id: 'cat-div-7', name: 'রংপুর-বিভাগ', slug: 'rangpur-division', order: 14, visible: true },
+  { id: 'cat-div-8', name: 'ময়মনসিংহ-বিভাগ', slug: 'mymensingh-division', order: 15, visible: true },
+  { id: 'cat-8', name: 'বিনোদন', slug: 'entertainment', order: 16, visible: true },
+  { id: 'cat-9', name: 'তথ্যপ্রযুক্তি', slug: 'technology', order: 17, visible: true },
+  { id: 'cat-10', name: 'শিক্ষা', slug: 'education', order: 18, visible: true },
+  { id: 'cat-11', name: 'আইন-আদালত', slug: 'law', order: 19, visible: true },
+  { id: 'cat-12', name: 'মতামত', slug: 'opinion', order: 20, visible: true },
+  { id: 'cat-13', name: 'গণমাধ্যম', slug: 'media', order: 21, visible: true },
+  { id: 'cat-14', name: 'ছবি', slug: 'photos', order: 22, visible: true },
+  { id: 'cat-15', name: 'ভিডিও', slug: 'videos', order: 23, visible: true },
+  { id: 'cat-16', name: 'ক্যাম্পাস', slug: 'campus', order: 24, visible: true },
+  { id: 'cat-17', name: 'ধর্ম', slug: 'religion', order: 25, visible: true },
+  { id: 'cat-18', name: 'প্রবাস', slug: 'probash', order: 26, visible: true },
+  { id: 'cat-19', name: 'লাইফস্টাইল', slug: 'lifestyle', order: 27, visible: true },
+  { id: 'cat-20', name: 'স্বাস্থ্য', slug: 'health', order: 28, visible: true },
 ];
 
 // Helper to gather all initial articles
@@ -376,10 +390,23 @@ export function subscribeToCategories(callback: (categories: CategoryItem[]) => 
       snapshot.forEach((docSnap) => {
         list.push({ ...(docSnap.data() as CategoryItem), id: docSnap.id });
       });
-      callback(list);
+      if (list.length === 0) {
+        callback(defaultCategories);
+      } else {
+        // Ensure default division categories and standard categories exist in the list
+        const existingNames = new Set(list.map((c) => c.name.trim()));
+        const merged = [...list];
+        defaultCategories.forEach((defCat) => {
+          if (!existingNames.has(defCat.name.trim())) {
+            merged.push(defCat);
+          }
+        });
+        callback(merged);
+      }
     },
     (err) => {
       console.error('Categories subscription error:', err);
+      callback(defaultCategories);
     }
   );
 }

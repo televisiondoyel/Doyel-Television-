@@ -13,6 +13,8 @@ import {
   Camera,
   Video,
   Landmark,
+  MapPin,
+  Building2,
   LucideIcon,
 } from 'lucide-react';
 
@@ -80,6 +82,9 @@ export const CategoryHeader: React.FC<CategoryHeaderProps> = ({
     }
     if (iconKey.includes('landmark') || iconKey.includes('রাজনীতি')) {
       return <Landmark className="w-4 h-4 shrink-0 text-white" />;
+    }
+    if (iconKey.includes('সারাদেশ') || iconKey.includes('বিভাগ') || iconKey.includes('জেলা') || iconKey.includes('ঢাকা') || iconKey.includes('চট্টগ্রাম') || iconKey.includes('চট্রগ্রাম') || iconKey.includes('খুলনা') || iconKey.includes('রাজশাহী') || iconKey.includes('বরিশাল') || iconKey.includes('সিলেট') || iconKey.includes('রংপুর') || iconKey.includes('ময়মনসিংহ')) {
+      return <MapPin className="w-4 h-4 shrink-0 text-white" />;
     }
 
     return <Newspaper className="w-4 h-4 shrink-0 text-white" />;

@@ -25,6 +25,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({
   const [content, setContent] = useState(initialArticle?.content || '');
   const [excerpt, setExcerpt] = useState(initialArticle?.excerpt || '');
   const [category, setCategory] = useState(initialArticle?.category || 'জাতীয়');
+  const [subcategory, setSubcategory] = useState(initialArticle?.subcategory || '');
   const [author, setAuthor] = useState(initialArticle?.author || 'অনলাইন ডেস্ক');
   const [image, setImage] = useState(
     initialArticle?.image ||
@@ -34,6 +35,8 @@ export const PostEditor: React.FC<PostEditorProps> = ({
   const [isTicker, setIsTicker] = useState(Boolean(initialArticle?.isTicker));
   const [newCatName, setNewCatName] = useState('');
   const [showNewCatInput, setShowNewCatInput] = useState(false);
+  const [catSearch, setCatSearch] = useState('');
+  const [categoryGroupTab, setCategoryGroupTab] = useState<'all' | 'divisions' | 'main'>('all');
   const [manualSaving, setManualSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
@@ -68,6 +71,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({
           content,
           excerpt: excerpt || content.slice(0, 160),
           category,
+          subcategory: subcategory.trim() || undefined,
           author,
           image,
           lead,
@@ -83,7 +87,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [title, content, excerpt, category, author, image, lead, isTicker]);
+  }, [title, content, excerpt, category, subcategory, author, image, lead, isTicker]);
 
   const handleManualSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,6 +103,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({
         content,
         excerpt: excerpt || content.slice(0, 160),
         category,
+        subcategory: subcategory.trim() || undefined,
         author,
         image,
         lead,
@@ -354,29 +359,108 @@ export const PostEditor: React.FC<PostEditorProps> = ({
           {/* 2. Category Selector Box */}
           <div className="bg-white border border-[#c3c4c7] rounded shadow-2xs">
             <div className="px-4 py-2.5 border-b border-[#c3c4c7] bg-[#f6f7f7] font-semibold text-[13px] text-gray-800 flex items-center justify-between">
-              <span>ক্যাটাগরি (Categories)</span>
+              <span>ক্যাটাগরি ও বিভাগ (Categories)</span>
               <i className="fa fa-folder-open text-[#2271b1]"></i>
             </div>
-            <div className="p-4 space-y-2">
-              <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 text-xs">
-                {categories.map((cat) => (
-                  <label
-                    key={cat.id}
-                    className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
-                  >
-                    <input
-                      type="radio"
-                      name="postCategory"
-                      value={cat.name}
-                      checked={category === cat.name}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="text-[#2271b1] focus:ring-[#2271b1]"
-                    />
-                    <span className={category === cat.name ? 'font-bold text-[#2271b1]' : 'text-gray-700'}>
-                      {cat.name}
-                    </span>
-                  </label>
-                ))}
+            <div className="p-4 space-y-3">
+              {/* Selected category pill */}
+              <div className="bg-blue-50 border border-blue-200 rounded p-2 text-xs flex items-center justify-between">
+                <span className="text-gray-600">নির্বাচিত ক্যাটাগরি:</span>
+                <span className="font-bold text-[#004F8A] bg-white px-2 py-0.5 rounded border border-blue-300">
+                  {category || 'জাতীয়'}
+                </span>
+              </div>
+
+              {/* Quick Divisional Chips */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 mb-1.5 uppercase tracking-wide">
+                  বিভাগ ভিত্তিক কুইক সিলেক্ট (Divisions):
+                </label>
+                <div className="flex flex-wrap gap-1">
+                  {[
+                    'সারাদেশে',
+                    'ঢাকা-বিভাগ',
+                    'চট্রগ্রাম-বিভাগ',
+                    'খুলনা-বিভাগ',
+                    'রাজশাহী-বিভাগ',
+                    'বরিশাল-বিভাগ',
+                    'সিলেট-বিভাগ',
+                    'রংপুর-বিভাগ',
+                    'ময়মনসিংহ-বিভাগ',
+                  ].map((divName) => (
+                    <button
+                      key={divName}
+                      type="button"
+                      onClick={() => setCategory(divName)}
+                      className={`text-[11px] px-2 py-1 rounded transition-colors ${
+                        category === divName
+                          ? 'bg-[#9A1515] text-white font-bold shadow-xs'
+                          : 'bg-gray-100 hover:bg-blue-50 text-gray-700 hover:text-[#004F8A] border border-gray-200'
+                      }`}
+                    >
+                      {divName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Search Category */}
+              <div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={catSearch}
+                    onChange={(e) => setCatSearch(e.target.value)}
+                    placeholder="ক্যাটাগরি খুঁজুন (যেমন: রাজনীতি, খেলা, খুলনা...)"
+                    className="w-full text-xs border border-gray-300 rounded pl-7 pr-2 py-1 outline-none focus:border-[#2271b1]"
+                  />
+                  <i className="fa fa-search absolute left-2.5 top-2 text-gray-400 text-[10px]"></i>
+                </div>
+              </div>
+
+              {/* Scrollable Category List */}
+              <div className="max-h-48 overflow-y-auto space-y-1 pr-1 text-xs border border-gray-200 rounded p-1.5 bg-gray-50/50">
+                {categories
+                  .filter((c) =>
+                    catSearch ? c.name.toLowerCase().includes(catSearch.toLowerCase()) : true
+                  )
+                  .map((cat) => (
+                    <label
+                      key={cat.id}
+                      className={`flex items-center gap-2 cursor-pointer hover:bg-blue-50 p-1 rounded transition-colors ${
+                        category === cat.name ? 'bg-blue-100/70 font-bold' : ''
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="postCategory"
+                        value={cat.name}
+                        checked={category === cat.name}
+                        onChange={(e) => setCategory(e.target.value)}
+                        className="text-[#2271b1] focus:ring-[#2271b1]"
+                      />
+                      <span className={category === cat.name ? 'text-[#004F8A]' : 'text-gray-700'}>
+                        {cat.name}
+                      </span>
+                    </label>
+                  ))}
+              </div>
+
+              {/* Subcategory / District Input Field */}
+              <div className="pt-2 border-t border-gray-100">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  উপ-ক্যাটাগরি / জেলা / উপজেলা (ঐচ্ছিক):
+                </label>
+                <input
+                  type="text"
+                  value={subcategory}
+                  onChange={(e) => setSubcategory(e.target.value)}
+                  placeholder="যেমন: সন্দ্বীপ, কক্সবাজার, যশোর..."
+                  className="w-full border border-gray-300 rounded px-2.5 py-1 text-xs outline-none focus:border-[#2271b1]"
+                />
+                <p className="text-[10.5px] text-gray-400 mt-0.5">
+                  নির্দিষ্ট জেলা বা উপ-বিভাগের নাম লিখলে পাঠক সার্চ করে সহজে খুঁজে পাবেন।
+                </p>
               </div>
 
               {/* Add New Category Quick Toggle */}
@@ -385,24 +469,24 @@ export const PostEditor: React.FC<PostEditorProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowNewCatInput(true)}
-                    className="text-xs text-[#2271b1] hover:underline flex items-center gap-1"
+                    className="text-xs text-[#2271b1] hover:underline flex items-center gap-1 font-medium"
                   >
-                    + নতুন ক্যাটাগরি যোগ করুন
+                    <i className="fa fa-plus-circle"></i> নতুন কাস্টম ক্যাটাগরি তৈরি করুন
                   </button>
                 ) : (
-                  <div className="space-y-2 pt-1">
+                  <div className="space-y-2 pt-1 bg-gray-50 p-2 rounded border border-gray-200">
                     <input
                       type="text"
                       value={newCatName}
                       onChange={(e) => setNewCatName(e.target.value)}
-                      placeholder="নতুন ক্যাটাগরির নাম..."
-                      className="w-full border border-gray-300 rounded px-2 py-1 text-xs outline-none focus:border-[#2271b1]"
+                      placeholder="নতুন ক্যাটাগরির নাম লিখুন..."
+                      className="w-full border border-gray-300 rounded px-2 py-1 text-xs outline-none focus:border-[#2271b1] bg-white"
                     />
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={handleAddNewCategory}
-                        className="bg-[#2271b1] text-white text-xs px-2.5 py-1 rounded font-medium"
+                        className="bg-[#2271b1] hover:bg-[#135e96] text-white text-xs px-3 py-1 rounded font-medium"
                       >
                         যোগ করুন
                       </button>

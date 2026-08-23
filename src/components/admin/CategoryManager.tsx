@@ -88,13 +88,45 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({
   return (
     <div className="space-y-4">
       {/* Page Title */}
-      <div className="flex items-center justify-between pb-2 border-b border-gray-300">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-gray-300">
         <div>
           <h1 className="text-2xl font-normal text-[#1d2327]">ক্যাটাগরি ও মেনু (Categories)</h1>
           <p className="text-xs text-gray-500 mt-0.5">
             ওয়েবসাইটের প্রধান নেভিগেশন বার এবং সংবাদের বিভাগগুলো নিয়ন্ত্রণ করুন
           </p>
         </div>
+        <button
+          type="button"
+          onClick={async () => {
+            const divisions = [
+              { name: 'সারাদেশে', slug: 'saradesh' },
+              { name: 'ঢাকা-বিভাগ', slug: 'dhaka-division' },
+              { name: 'চট্রগ্রাম-বিভাগ', slug: 'chittagong-division' },
+              { name: 'খুলনা-বিভাগ', slug: 'khulna-division' },
+              { name: 'রাজশাহী-বিভাগ', slug: 'rajshahi-division' },
+              { name: 'বরিশাল-বিভাগ', slug: 'barisal-division' },
+              { name: 'সিলেট-বিভাগ', slug: 'sylhet-division' },
+              { name: 'রংপুর-বিভাগ', slug: 'rangpur-division' },
+              { name: 'ময়মনসিংহ-বিভাগ', slug: 'mymensingh-division' },
+            ];
+            for (let i = 0; i < divisions.length; i++) {
+              const d = divisions[i];
+              if (!categories.some((c) => c.name === d.name)) {
+                await onSaveCategory({
+                  id: 'cat-div-' + (i + 1),
+                  name: d.name,
+                  slug: d.slug,
+                  order: 10 + i,
+                  visible: true,
+                });
+              }
+            }
+            alert('সকল বিভাগীয় ক্যাটাগরি সফলভাবে ডাটাবেজে যুক্ত হয়েছে!');
+          }}
+          className="text-xs bg-[#2271b1] hover:bg-[#135e96] text-white px-3 py-1.5 rounded font-semibold transition-colors flex items-center gap-1 self-start sm:self-auto"
+        >
+          <i className="fa fa-map-marker"></i> ৮টি বিভাগীয় ক্যাটাগরি ডাটাবেজে যুক্ত করুন
+        </button>
       </div>
 
       {/* WordPress 2-Column Layout */}

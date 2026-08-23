@@ -390,12 +390,67 @@ export default function App() {
     }
 
     if (currentFilterCategory && currentFilterCategory !== 'প্রচ্ছদ' && currentFilterCategory !== 'আমাদের পরিবার') {
-      return allArticles.filter(
-        (a) =>
-          a.category === currentFilterCategory ||
-          a.subcategory === currentFilterCategory ||
-          (currentFilterCategory.includes('বিভাগ') && a.category === 'জাতীয়')
-      );
+      const targetCat = currentFilterCategory.trim();
+
+      // If viewing all "সারাদেশে" / "সারাদেশ"
+      if (targetCat === 'সারাদেশে' || targetCat === 'সারাদেশ') {
+        const divisionNames = [
+          'সারাদেশে',
+          'সারাদেশ',
+          'ঢাকা-বিভাগ',
+          'ঢাকা বিভাগ',
+          'চট্রগ্রাম-বিভাগ',
+          'চট্টগ্রাম-বিভাগ',
+          'চট্রগ্রাম বিভাগ',
+          'চট্টগ্রাম বিভাগ',
+          'খুলনা-বিভাগ',
+          'খুলনা বিভাগ',
+          'রাজশাহী-বিভাগ',
+          'রাজশাহী বিভাগ',
+          'বরিশাল-বিভাগ',
+          'বরিশাল বিভাগ',
+          'সিলেট-বিভাগ',
+          'সিলেট বিভাগ',
+          'রংপুর-বিভাগ',
+          'রংপুর বিভাগ',
+          'ময়মনসিংহ-বিভাগ',
+          'ময়মনসিংহ বিভাগ',
+        ];
+        return allArticles.filter((a) => {
+          const aCat = (a.category || '').trim();
+          const aSub = (a.subcategory || '').trim();
+          return (
+            divisionNames.includes(aCat) ||
+            divisionNames.includes(aSub) ||
+            aCat.includes('বিভাগ') ||
+            aSub.includes('বিভাগ') ||
+            aCat === 'সারাদেশে' ||
+            aSub === 'সারাদেশে'
+          );
+        });
+      }
+
+      // If viewing a specific division or category
+      const normalizedTarget = targetCat
+        .replace(/\s+/g, '-')
+        .replace('চট্টগ্রাম', 'চট্রগ্রাম')
+        .replace(/-বিভাগ$/, '')
+        .replace(/বিভাগ$/, '');
+
+      return allArticles.filter((a) => {
+        const aCat = (a.category || '').trim();
+        const aSub = (a.subcategory || '').trim();
+
+        if (aCat === targetCat || aSub === targetCat) return true;
+
+        const normCat = aCat.replace(/\s+/g, '-').replace('চট্টগ্রাম', 'চট্রগ্রাম');
+        const normSub = aSub.replace(/\s+/g, '-').replace('চট্টগ্রাম', 'চট্রগ্রাম');
+
+        if (normCat === normalizedTarget || normSub === normalizedTarget) return true;
+        if (normCat.includes(normalizedTarget) || normSub.includes(normalizedTarget)) return true;
+
+        return false;
+      });
     }
 
     return null;

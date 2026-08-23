@@ -11,13 +11,14 @@ export const Navbar: React.FC<NavbarProps> = ({ activeCategory, onSelectCategory
   const [otherOpen, setOtherOpen] = useState(false);
 
   const divisionList = [
-    'খুলনা-বিভাগ',
-    'চট্রগ্রাম-বিভাগ',
     'ঢাকা-বিভাগ',
-    'ময়মনসিংহ-বিভাগ',
-    'রংপুর-বিভাগ',
+    'চট্রগ্রাম-বিভাগ',
+    'খুলনা-বিভাগ',
     'রাজশাহী-বিভাগ',
+    'বরিশাল-বিভাগ',
     'সিলেট-বিভাগ',
+    'রংপুর-বিভাগ',
+    'ময়মনসিংহ-বিভাগ',
   ];
 
   const otherList = [
@@ -96,8 +97,12 @@ export const Navbar: React.FC<NavbarProps> = ({ activeCategory, onSelectCategory
             onMouseLeave={() => setSaradeshOpen(false)}
           >
             <button
-              onClick={() => setSaradeshOpen(!saradeshOpen)}
-              className="w-full text-left lg:w-auto px-4 py-2.5 flex items-center justify-between lg:justify-start gap-1 transition-colors border-b lg:border-b-0 lg:border-r border-[#174384] hover:bg-[#004F8A]"
+              onClick={() => handleCategoryClick('সারাদেশে')}
+              className={`w-full text-left lg:w-auto px-4 py-2.5 flex items-center justify-between lg:justify-start gap-1 transition-colors border-b lg:border-b-0 lg:border-r border-[#174384] ${
+                activeCategory === 'সারাদেশে' || divisionList.includes(activeCategory)
+                  ? 'bg-[#9A1515] font-bold text-white'
+                  : 'hover:bg-[#004F8A]'
+              }`}
             >
               <span>সারাদেশে</span>
               <i className="fa fa-caret-down text-xs"></i>
@@ -107,13 +112,30 @@ export const Navbar: React.FC<NavbarProps> = ({ activeCategory, onSelectCategory
             <ul
               className={`${
                 saradeshOpen ? 'block' : 'hidden'
-              } lg:absolute top-full left-0 w-full lg:w-48 bg-[#1F4565] border-t border-[#004F8A] shadow-xl z-50`}
+              } lg:absolute top-full left-0 w-full lg:w-52 bg-[#1F4565] border-t border-[#004F8A] shadow-xl z-50`}
             >
+              <li>
+                <button
+                  onClick={() => handleCategoryClick('সারাদেশে')}
+                  className={`w-full text-left px-4 py-2.5 text-sm font-semibold transition-colors border-b border-[#174384] ${
+                    activeCategory === 'সারাদেশে'
+                      ? 'bg-[#9A1515] text-white'
+                      : 'text-yellow-300 hover:bg-[#004F8A] hover:text-white'
+                  }`}
+                >
+                  <i className="fa fa-map-marker mr-1.5 text-xs"></i>
+                  সারাদেশ (সকল বিভাগ)
+                </button>
+              </li>
               {divisionList.map((div) => (
                 <li key={div}>
                   <button
                     onClick={() => handleCategoryClick(div)}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-100 hover:bg-[#9A1515] hover:text-white transition-colors border-b border-[#174384]"
+                    className={`w-full text-left px-4 py-2 text-sm transition-colors border-b border-[#174384] ${
+                      activeCategory === div
+                        ? 'bg-[#9A1515] text-white font-bold'
+                        : 'text-gray-100 hover:bg-[#9A1515] hover:text-white'
+                    }`}
                   >
                     <i className="fa fa-angle-right mr-1.5 text-xs text-blue-300"></i>
                     {div}
