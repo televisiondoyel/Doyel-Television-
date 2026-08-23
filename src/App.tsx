@@ -1284,15 +1284,17 @@ export default function App() {
                 {/* Photo Gallery Carousel */}
                 <PhotoGallery
                   photos={photos}
-                  onSelectPhoto={(caption) => {
+                  onSelectPhoto={(photo) => {
                     setSelectedArticle({
-                      id: 'photo-gallery',
-                      title: caption,
+                      id: photo.id || 'photo-gallery',
+                      title: photo.title,
                       category: 'ফটো গ্যালারী',
-                      image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80',
-                      excerpt: caption,
-                      content: `ফটো ফিচার ও বিশেষ চিত্র প্রতিবেদন: ${caption}`,
-                      date: '২১ অগাস্ট ২০২৬',
+                      image: photo.image,
+                      excerpt: photo.caption || photo.title,
+                      content: photo.caption
+                        ? `${photo.title}\n\n${photo.caption}`
+                        : `ফটো ফিচার ও বিশেষ চিত্র প্রতিবেদন: ${photo.title}`,
+                      date: photo.date || '২১ অগাস্ট ২০২৬',
                       author: 'আলোকচিত্র সাংবাদিক',
                     });
                   }}

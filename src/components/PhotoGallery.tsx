@@ -6,7 +6,7 @@ import { CategoryHeader } from './CategoryHeader';
 
 interface PhotoGalleryProps {
   photos?: PhotoSlide[];
-  onSelectPhoto?: (caption: string) => void;
+  onSelectPhoto?: (photo: PhotoSlide) => void;
 }
 
 export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, onSelectPhoto }) => {
@@ -52,7 +52,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, onSelectPhot
         className="relative overflow-hidden group rounded bg-black aspect-video flex items-center justify-center cursor-pointer"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
-        onClick={() => onSelectPhoto?.(currentPhoto.caption || currentPhoto.title)}
+        onClick={() => onSelectPhoto?.(currentPhoto)}
       >
         <ImageWithFallback
           src={currentPhoto.image}
@@ -62,13 +62,15 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, onSelectPhot
         />
 
         {/* Caption overlay */}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4 text-white">
-          <h4 className="text-base sm:text-lg font-bold text-white leading-snug drop-shadow-md">
-            {currentPhoto.caption || currentPhoto.title}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/75 to-transparent p-4 text-white">
+          <h4 className="text-base sm:text-lg font-bold text-white leading-snug drop-shadow-md line-clamp-2">
+            {currentPhoto.title || currentPhoto.caption}
           </h4>
-          <span className="text-xs text-gray-300 font-medium">
-            ছবি {currentIndex + 1} / {photoList.length}
-          </span>
+          {currentPhoto.caption && currentPhoto.caption !== currentPhoto.title && (
+            <p className="text-xs text-gray-200 line-clamp-1 mt-0.5 opacity-90 font-normal">
+              {currentPhoto.caption}
+            </p>
+          )}
         </div>
 
         {/* Left / Right Controls */}

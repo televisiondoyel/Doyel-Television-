@@ -49,7 +49,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
     try {
       await onSavePhoto({
         title: photoTitle.trim(),
-        caption: photoCaption.trim() || photoTitle.trim(),
+        caption: photoCaption.trim(),
         image: photoUrl.trim(),
         date: new Date().toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' })
       });
@@ -107,12 +107,12 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
           {type === 'photos' ? (
             <form onSubmit={handlePhotoSubmit} className="space-y-3 text-xs text-gray-700">
               <div>
-                <label className="block font-semibold mb-1">ছবির ক্যাপশন / শিরোনাম:</label>
+                <label className="block font-semibold mb-1">ছবির মূল শিরোনাম (Title) :</label>
                 <input
                   type="text"
                   value={photoTitle}
                   onChange={(e) => setPhotoTitle(e.target.value)}
-                  placeholder="যেমন: সবুজের মাঝে দৃশ্য..."
+                  placeholder="যেমন: সবুজের মাঝে মনোরম দৃশ্য..."
                   className="w-full text-xs border border-gray-300 rounded px-3 py-1.5 outline-none focus:border-[#2271b1]"
                   required
                 />
@@ -159,11 +159,11 @@ export const MediaManager: React.FC<MediaManagerProps> = ({
               )}
 
               <div>
-                <label className="block font-semibold mb-1">ক্যাপশন বিস্তারিত:</label>
+                <label className="block font-semibold mb-1">ছবির বিস্তারিত ক্যাপশন / বিবরণ (ঐচ্ছিক) :</label>
                 <textarea
                   value={photoCaption}
                   onChange={(e) => setPhotoCaption(e.target.value)}
-                  placeholder="বিস্তারিত বিবরণ..."
+                  placeholder="ছবির বিস্তারিত ঘটনা বা তথ্য..."
                   rows={2}
                   className="w-full text-xs border border-gray-300 rounded p-2 outline-none focus:border-[#2271b1]"
                 ></textarea>

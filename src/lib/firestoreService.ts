@@ -433,9 +433,15 @@ export function subscribeToPhotos(callback: (photos: PhotoSlide[]) => void) {
   return onSnapshot(
     q,
     (snapshot) => {
-      const list: PhotoSlide[] = [];
+      const list: (PhotoSlide & { createdAt?: string })[] = [];
       snapshot.forEach((docSnap) => {
         list.push({ ...(docSnap.data() as PhotoSlide), id: docSnap.id });
+      });
+      // Sort newest created photos first so newly uploaded photos appear immediately at the front
+      list.sort((a, b) => {
+        const aTime = a.createdAt || (a.id.startsWith('photo-') ? a.id : '0');
+        const bTime = b.createdAt || (b.id.startsWith('photo-') ? b.id : '0');
+        return bTime.localeCompare(aTime);
       });
       callback(list);
     },
@@ -450,9 +456,15 @@ export function subscribeToVideos(callback: (videos: VideoSlide[]) => void) {
   return onSnapshot(
     q,
     (snapshot) => {
-      const list: VideoSlide[] = [];
+      const list: (VideoSlide & { createdAt?: string })[] = [];
       snapshot.forEach((docSnap) => {
         list.push({ ...(docSnap.data() as VideoSlide), id: docSnap.id });
+      });
+      // Sort newest created videos first
+      list.sort((a, b) => {
+        const aTime = a.createdAt || (a.id.startsWith('video-') ? a.id : '0');
+        const bTime = b.createdAt || (b.id.startsWith('video-') ? b.id : '0');
+        return bTime.localeCompare(aTime);
       });
       callback(list);
     },
@@ -598,12 +610,13 @@ export async function savePhotoToDb(photo: Partial<PhotoSlide>): Promise<string>
     }
   }
 
-  const data: PhotoSlide = {
+  const data = {
     id,
     title: photo.title || 'ছবির শিরোনাম',
-    caption: photo.caption || photo.title || '',
+    caption: photo.caption || '',
     image: finalImg,
-    date: photo.date || new Date().toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' })
+    date: photo.date || new Date().toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' }),
+    createdAt: (photo as any).createdAt || new Date().toISOString()
   };
   await setDoc(docRef, data, { merge: true });
   return id;
@@ -616,12 +629,13 @@ export async function deletePhotoFromDb(id: string): Promise<void> {
 export async function saveVideoToDb(video: Partial<VideoSlide>): Promise<string> {
   const id = video.id || 'video-' + Date.now();
   const docRef = doc(db, 'videos', id);
-  const data: VideoSlide = {
+  const data = {
     id,
     title: video.title || 'ভিডিওর শিরোনাম',
     videoId: video.videoId || 'FAt1d11UOg8',
     thumbnail: video.thumbnail || `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`,
-    date: video.date || new Date().toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' })
+    date: video.date || new Date().toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' }),
+    createdAt: (video as any).createdAt || new Date().toISOString()
   };
   await setDoc(docRef, data, { merge: true });
   return id;
