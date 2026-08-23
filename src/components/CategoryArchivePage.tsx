@@ -27,14 +27,14 @@ export const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
   const itemsPerPage = 10;
 
   const divisionList = [
-    'ঢাকা-বিভাগ',
-    'চট্রগ্রাম-বিভাগ',
-    'খুলনা-বিভাগ',
-    'রাজশাহী-বিভাগ',
-    'বরিশাল-বিভাগ',
-    'সিলেট-বিভাগ',
-    'রংপুর-বিভাগ',
-    'ময়মনসিংহ-বিভাগ',
+    'ঢাকা বিভাগ',
+    'চট্রগ্রাম বিভাগ',
+    'খুলনা বিভাগ',
+    'রাজশাহী বিভাগ',
+    'বরিশাল বিভাগ',
+    'সিলেট বিভাগ',
+    'রংপুর বিভাগ',
+    'ময়মনসিংহ বিভাগ',
   ];
 
   const isDivisionContext =
@@ -83,9 +83,6 @@ export const CategoryArchivePage: React.FC<CategoryArchivePageProps> = ({
             </button>
             <i className="fa fa-chevron-right text-xs text-gray-400"></i>
             <span className="text-gray-800 font-bold">{category}</span>
-            <span className="text-xs text-gray-500 font-normal ml-auto">
-              (মোট {articles.length} টি সংবাদ)
-            </span>
           </div>
 
           {articles.length === 0 ? (

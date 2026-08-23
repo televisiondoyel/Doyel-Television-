@@ -13,16 +13,16 @@ export const Navbar: React.FC<NavbarProps> = ({ activeCategory, onSelectCategory
   const saradeshRef = useRef<HTMLLIElement>(null);
   const otherRef = useRef<HTMLLIElement>(null);
 
-  // Exact division list ordered as shown in user's image & request
+  // Exact division list ordered as shown in user's request (with space instead of hyphen)
   const divisionList = [
-    'খুলনা-বিভাগ',
-    'চট্রগ্রাম-বিভাগ',
-    'ঢাকা-বিভাগ',
-    'ময়মনসিংহ-বিভাগ',
-    'রংপুর-বিভাগ',
-    'রাজশাহী-বিভাগ',
-    'সিলেট-বিভাগ',
-    'বরিশাল-বিভাগ',
+    'খুলনা বিভাগ',
+    'চট্রগ্রাম বিভাগ',
+    'ঢাকা বিভাগ',
+    'ময়মনসিংহ বিভাগ',
+    'রংপুর বিভাগ',
+    'রাজশাহী বিভাগ',
+    'সিলেট বিভাগ',
+    'বরিশাল বিভাগ',
   ];
 
   const otherList = [
@@ -141,13 +141,14 @@ export const Navbar: React.FC<NavbarProps> = ({ activeCategory, onSelectCategory
                 <li key={div}>
                   <button
                     onClick={() => handleCategoryClick(div)}
-                    className={`w-full text-left px-4 py-2 text-[14px] transition-colors border-b border-[#234b73]/40 last:border-b-0 ${
+                    className={`w-full text-left px-4 py-2 text-[14px] flex items-center transition-colors border-b border-[#234b73]/40 last:border-b-0 ${
                       activeCategory === div
                         ? 'bg-[#9A1515] text-white font-bold'
                         : 'text-gray-100 hover:bg-[#204a75] hover:text-white'
                     }`}
                   >
-                    {div}
+                    <i className="fa fa-angle-right mr-2 text-xs text-blue-300 shrink-0"></i>
+                    <span>{div}</span>
                   </button>
                 </li>
               ))}

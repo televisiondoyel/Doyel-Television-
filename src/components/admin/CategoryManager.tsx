@@ -100,14 +100,14 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({
           onClick={async () => {
             const divisions = [
               { name: 'সারাদেশে', slug: 'saradesh' },
-              { name: 'ঢাকা-বিভাগ', slug: 'dhaka-division' },
-              { name: 'চট্রগ্রাম-বিভাগ', slug: 'chittagong-division' },
-              { name: 'খুলনা-বিভাগ', slug: 'khulna-division' },
-              { name: 'রাজশাহী-বিভাগ', slug: 'rajshahi-division' },
-              { name: 'বরিশাল-বিভাগ', slug: 'barisal-division' },
-              { name: 'সিলেট-বিভাগ', slug: 'sylhet-division' },
-              { name: 'রংপুর-বিভাগ', slug: 'rangpur-division' },
-              { name: 'ময়মনসিংহ-বিভাগ', slug: 'mymensingh-division' },
+              { name: 'ঢাকা বিভাগ', slug: 'dhaka-division' },
+              { name: 'চট্রগ্রাম বিভাগ', slug: 'chittagong-division' },
+              { name: 'খুলনা বিভাগ', slug: 'khulna-division' },
+              { name: 'রাজশাহী বিভাগ', slug: 'rajshahi-division' },
+              { name: 'বরিশাল বিভাগ', slug: 'barisal-division' },
+              { name: 'সিলেট বিভাগ', slug: 'sylhet-division' },
+              { name: 'রংপুর বিভাগ', slug: 'rangpur-division' },
+              { name: 'ময়মনসিংহ বিভাগ', slug: 'mymensingh-division' },
             ];
             for (let i = 0; i < divisions.length; i++) {
               const d = divisions[i];
