@@ -136,23 +136,8 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
       .slice(0, 8);
   }, [allArticles, article]);
 
-  const [copiedLink, setCopiedLink] = useState(false);
-  const shareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/news/${encodeURIComponent(article.id)}`
-    : '';
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
   const shareTitle = article.title;
-
-  const handleCopyLink = async () => {
-    try {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(shareUrl);
-        setCopiedLink(true);
-        setTimeout(() => setCopiedLink(false), 3000);
-      }
-    } catch {
-      // fallback
-    }
-  };
 
   return (
     <section className="singlepage-section my-4">
@@ -286,27 +271,15 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
             </div>
 
             <div className="sgl-page-social">
-              <ul className="flex flex-wrap items-center gap-2">
+              <ul className="flex flex-wrap gap-2">
                 <li>
                   <a
-                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+                    href={`http://www.facebook.com/sharer.php?u=${encodeURIComponent(shareUrl)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="ffacebook bg-[#1877F2] hover:bg-[#1464cc] text-white text-xs sm:text-sm px-3 py-1.5 rounded flex items-center gap-1.5 font-medium transition-colors shadow-xs"
-                    title="ফেসবুকে শেয়ার করুন"
+                    className="ffacebook bg-[#3B5998] hover:bg-[#2d4373] text-white text-xs sm:text-sm px-3 py-1.5 rounded flex items-center gap-1.5 font-medium transition-colors"
                   >
                     <i className="fa fa-facebook"></i> Facebook
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + ' - ' + shareUrl)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="whatsapp bg-[#25D366] hover:bg-[#1ebc57] text-white text-xs sm:text-sm px-3 py-1.5 rounded flex items-center gap-1.5 font-medium transition-colors shadow-xs"
-                    title="হোয়াটসঅ্যাপে পাঠান"
-                  >
-                    <i className="fa fa-whatsapp"></i> WhatsApp
                   </a>
                 </li>
                 <li>
@@ -314,42 +287,65 @@ export const SinglePageArticle: React.FC<SinglePageArticleProps> = ({
                     href={`https://twitter.com/share?text=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(shareUrl)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="ttwitter bg-[#1DA1F2] hover:bg-[#0c85d0] text-white text-xs sm:text-sm px-3 py-1.5 rounded flex items-center gap-1.5 font-medium transition-colors shadow-xs"
-                    title="টুইটারে শেয়ার করুন"
+                    className="ttwitter bg-[#1DA1F2] hover:bg-[#0c85d0] text-white text-xs sm:text-sm px-3 py-1.5 rounded flex items-center gap-1.5 font-medium transition-colors"
                   >
                     <i className="fa fa-twitter"></i> Twitter
                   </a>
                 </li>
                 <li>
                   <a
-                    href={`https://www.linkedin.com/shareArticle?mini=true&title=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(shareUrl)}`}
+                    href={`http://digg.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(shareTitle)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="linkedin bg-[#0A66C2] hover:bg-[#084e96] text-white text-xs sm:text-sm px-3 py-1.5 rounded flex items-center gap-1.5 font-medium transition-colors shadow-xs"
-                    title="লিংকডইনে শেয়ার করুন"
+                    className="digg bg-[#005BE2] hover:bg-[#0047b3] text-white text-xs sm:text-sm px-3 py-1.5 rounded flex items-center gap-1.5 font-medium transition-colors"
                   >
-                    <i className="fa fa-linkedin"></i> LinkedIn
+                    <i className="fa fa-digg"></i> Digg
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={`http://www.linkedin.com/shareArticle?mini=true&title=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(shareUrl)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="linkedin bg-[#0077B5] hover:bg-[#005a8c] text-white text-xs sm:text-sm px-3 py-1.5 rounded flex items-center gap-1.5 font-medium transition-colors"
+                  >
+                    <i className="fa fa-linkedin"></i> Linkedin
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={`http://www.reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(shareTitle)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="reddit bg-[#FF4500] hover:bg-[#cc3700] text-white text-xs sm:text-sm px-3 py-1.5 rounded flex items-center gap-1.5 font-medium transition-colors"
+                  >
+                    <i className="fa fa-reddit"></i> Reddit
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={`https://plus.google.com/share?url=${encodeURIComponent(shareUrl)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="google-plus bg-[#DB4437] hover:bg-[#c23321] text-white text-xs sm:text-sm px-3 py-1.5 rounded flex items-center gap-1.5 font-medium transition-colors"
+                  >
+                    <i className="fa fa-google-plus"></i> Google Plus
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={`http://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(shareUrl)}&media=${encodeURIComponent(article.image || '')}&description=${encodeURIComponent(shareTitle)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="pinterest bg-[#BD081C] hover:bg-[#960616] text-white text-xs sm:text-sm px-3 py-1.5 rounded flex items-center gap-1.5 font-medium transition-colors"
+                  >
+                    <i className="fa fa-pinterest"></i> Pinterest
                   </a>
                 </li>
                 <li>
                   <button
-                    type="button"
-                    onClick={handleCopyLink}
-                    className={`text-xs sm:text-sm px-3 py-1.5 rounded flex items-center gap-1.5 font-medium transition-all shadow-xs cursor-pointer ${
-                      copiedLink
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-gray-700 hover:bg-gray-800 text-white'
-                    }`}
-                    title="সংবাদের সরাসরি লিংক কপি করুন"
-                  >
-                    <i className={`fa ${copiedLink ? 'fa-check' : 'fa-link'}`}></i>
-                    <span>{copiedLink ? 'লিংক কপি হয়েছে!' : 'লিংক কপি'}</span>
-                  </button>
-                </li>
-                <li>
-                  <button
                     onClick={() => window.print()}
-                    className="print bg-[#555555] hover:bg-[#333333] text-white text-xs sm:text-sm px-3 py-1.5 rounded flex items-center gap-1.5 font-medium cursor-pointer transition-colors shadow-xs"
+                    className="print bg-[#555555] hover:bg-[#333333] text-white text-xs sm:text-sm px-3 py-1.5 rounded flex items-center gap-1.5 font-medium cursor-pointer transition-colors"
                   >
                     <i className="fa fa-print"></i> Print
                   </button>
