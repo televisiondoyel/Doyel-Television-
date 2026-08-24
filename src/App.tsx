@@ -51,6 +51,7 @@ import {
   defaultCategories,
   sortArticlesNewestFirst
 } from './lib/firestoreService';
+import { updateMetaTags } from './utils/metaManager';
 
 export default function App() {
   // Navigation & View States
@@ -286,6 +287,11 @@ export default function App() {
       }
     }
   }, [siteSettings?.siteLogo]);
+
+  // Dynamically update Open Graph & Twitter Card meta tags for SEO & Social Media previews
+  useEffect(() => {
+    updateMetaTags(selectedArticle, currentFilterCategory, siteSettings);
+  }, [selectedArticle, currentFilterCategory, siteSettings]);
 
   // Compute all articles (using real firestore articles, or initial defaults before first load only)
   const allArticles = useMemo(() => {
